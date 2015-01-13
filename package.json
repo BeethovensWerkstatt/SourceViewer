@@ -1,0 +1,28 @@
+{
+  "name": "SourceViewer",
+  "version": "0.3.1",
+  "description": "SourceViewer App",
+  "url":"http://",
+  "author": "Johannes Kepper",
+  "contributors":[
+    "Johannes Kepper <kepper@edirom.de>",
+    "Maja Hartwig <hartwig@beethovens-werkstatt.de>"
+  ],
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "load-grunt-tasks": "~0.4.0",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-processhtml": "~0.3.0",
+    "grunt-compare-size": "~0.4.0",
+    "grunt-contrib-cssmin": "~0.10.0",    
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-uglify": "~0.6.0",
+    "grunt-zip": "~0.13.0",
+    "grunt-text-replace": "~0.3.11",
+    "bower": "~1.3.3",
+    "grunt-contrib-compass": "~1.0.1",
+    "grunt-webdav-sync":"0.2.7"
+  }
+}

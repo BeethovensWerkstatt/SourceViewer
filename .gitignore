@@ -1,0 +1,32 @@
+#ignore config.json, since it holds user passwords
+config.json
+
+#ignore everything in contents -> this goes in a separate repo
+contents/*
+
+#ignore dist and build folders
+dist/
+build/
+
+#ignore node.js and bower components
+bower_components/
+node_modules/
+
+#ignore generic components that are generated with grunt
+repo.xml
+expath-pkg.xml
+resources/js/app.min.js
+
+#ignore sass cache
+.sass-cache/
+**/*.scssc
+.sizecache.json
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

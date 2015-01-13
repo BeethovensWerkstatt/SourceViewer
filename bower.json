@@ -1,0 +1,27 @@
+{
+  "name": "SourceViewer",
+  "version": "0.3.1",
+  "authors": [
+    "Johannes Kepper <kepper@edirom.de>",
+    "Maja Hartwig <hartwig@beethovens-werkstatt.de>"
+  ],
+  "license": "AGPL-3.0",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "dist",
+    "build",
+    "data"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.1",
+    "font-awesome": ">= 4.0.3",
+    "ace-builds": "master",
+    "dataModel":"https://github.com/BeethovensWerkstatt/Data-Model.git",
+    "facsimileViewer":"https://github.com/BeethovensWerkstatt/Leaflet.FacsimileViewer.git"
+  },
+  "devDependencies": {
+    "existdb-node": "https://github.com/wolfgangmm/existdb-node.git"
+  }
+}

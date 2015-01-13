@@ -1,0 +1,23 @@
+@font-face {
+    font-family: 'Bravura';
+    src: url('../fonts/bravura-1.02/Bravura.eot');
+    src: url('../fonts/bravura-1.02/Bravura.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/bravura-1.02/Bravura.woff') format('woff'),
+         url('../fonts/bravura-1.02/Bravura.otf') format('opentype'),
+         url('../fonts/bravura-1.02/Bravura.svg#7377dd80c36b825ad2214a14c2421925') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'BravuraText';
+    src: url('../fonts/bravura-1.02/BravuraText.eot');
+    src: url('../fonts/bravura-1.02/BravuraText.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/bravura-1.02/BravuraText.woff') format('woff'),
+         url('../fonts/bravura-1.02/BravuraText.otf') format('opentype'),
+         url('../fonts/bravura-1.02/BravuraText.svg#f678e10c1f5609a8428c245cc86aa255') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
