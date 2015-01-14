@@ -3,6 +3,7 @@ config.json
 
 #ignore everything in contents -> this goes in a separate repo
 contents/*
+!contents/
 
 #ignore dist and build folders
 dist/
