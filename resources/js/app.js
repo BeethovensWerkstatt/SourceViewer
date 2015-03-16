@@ -35,6 +35,10 @@ var highlightColor = '#00ffff';
 //duration in ms for displaying overlays
 var ms = 8000;
 
+//default language;
+var lang = 'de';
+var langFile = {};
+
 /*
  * Setup of components
  */
@@ -1008,10 +1012,60 @@ function toggleFullscreen() {
     }
 };
 
+/*
+ * function getBaseLanguage()
+ * identifies language of browser (should work on recent Firefox, Chrome, Safari and IE11)
+ */
+function getBaseLanguage() {
+
+    var prefLang = 'de';
+    if (typeof navigator.language === 'string' && navigator.language.length > 0)
+        prefLang = navigator.language;
+    else if(typeof navigator.browserLanguage === 'string' && navigator.browserLanguage.length > 0)
+        prefLang = navigator.browserLanguage;
+        
+        
+    getLangFile(prefLang);
+};
+
+/*
+ * function getLangFile(lang)
+ * 
+ * gets a JSON file with all language strings from the server
+ */
+function getLangFile(lang) {
+    
+    new jQuery.getJSON('resources/xql/getLangFile.xql',{prefLang: lang},function(data) {
+        lang = data.lang;
+        langFile = data.localization;
+        
+        $('*[data-i18n-text], *[data-i18n-title]').each(function(index) {
+            localize($(this));
+        });
+    });
+    
+};
+
+/*
+ * function localize(elem)
+ * 
+ * gets the localization for the specified element, based on the currently selected langFile
+ */
+function localize(elem) {
+    
+    if(typeof $(elem).attr('data-i18n-text') !== 'undefined') {
+        var key = $(elem).attr('data-i18n-text');
+        $(elem).html(langFile[key]);    
+    }
+    
+    if(typeof $(elem).attr('data-i18n-title') !== 'undefined') {
+        var key = $(elem).attr('data-i18n-title');
+        $(elem).attr('title',langFile[key]);    
+    }
+};
 
 /*
  * start of application
  */
-
 getFeatures();
-
+getBaseLanguage();

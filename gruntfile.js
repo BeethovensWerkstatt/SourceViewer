@@ -143,6 +143,13 @@ module.exports = function (grunt) {
                     {expand: true,
                         cwd: './',
                         flatten: true,
+                        src: ['resources/i18n/**'],
+                        dest: 'dist/resources/i18n',
+                        filter: 'isFile'
+                    },
+                    {expand: true,
+                        cwd: './',
+                        flatten: true,
                         src: ['resources/xslt/**'],
                         dest: 'dist/resources/xslt',
                         filter: 'isFile'

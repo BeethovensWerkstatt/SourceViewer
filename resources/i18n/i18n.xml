@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection>
+    <key xml:id="tooltipFullscreen">
+        <value xml:lang="de">Vollbildansicht</value>
+    </key>
+    <key xml:id="buttonFullscreen">
+        <value xml:lang="de">Vollbild: </value>
+    </key>
+    <key xml:id="buttonPagePreview">
+        <value xml:lang="de">Seitenübersicht</value>
+    </key>
+    <key xml:id="buttonShowInTranscription">
+        <value xml:lang="de">In Transkription anzeigen</value>
+    </key>
+    <key xml:id="buttonShowInCode">
+        <value xml:lang="de">In Codierung anzeigen</value>
+    </key>
+    <key xml:id="ButtonPreviousPage">
+        <value xml:lang="de">Vorhergehende Seite</value>
+    </key>
+    <key xml:id="ButtonNextPage">
+        <value xml:lang="de">Nächste Seite</value>
+    </key>
+    <key xml:id="tabCode">
+        <value xml:lang="de">Code</value>
+    </key>
+    <key xml:id="tabDesc">
+        <value xml:lang="de">Erläuterung</value>
+    </key>
+    <key xml:id="tabVariants">
+        <value xml:lang="de">Variantenabfolge</value>
+    </key>
+    <key xml:id="aboutText">
+        <value xml:lang="de">Diese Demoversion wurde von den Mitarbeitern des Projekts Beethovens Werkstatt entwickelt. Sie beinhaltet Codierungen der Beethovenschen Manuskripte denen das XML-basierte Datenformat MEI zugrunde liegt. Diese werden mithilfe von skalierbaren Vektorgrafiken (SVGs) mit den hochauflösenden Faksimiles des Beethoven-Hauses Bonn verknüpft. Die Darstellung der Notentexte erfolgt mit Verovio, welches MEI-Daten in gewohnte Notenschrift konvertiert. Der vorliegende Prototyp ist weder methodisch noch technisch ausgereift und ist lediglich als Ausgangspunkt der weiteren Arbeiten des Projekts zu verstehen.</value>
+    </key>
+    <key xml:id="versionString">
+        <value xml:lang="de">Version 0.4.1 (2014-12-01) | © 2015 Beethovens Werkstatt</value>
+    </key>
+    <key xml:id="loadingStartup">
+        <value xml:lang="de">Anwendung wird geladen</value>
+    </key>
+    <key xml:id="fundedBy">
+        <value xml:lang="de">Gefördert durch die</value>
+    </key>
+    <key xml:id="buttonAbout">
+        <value xml:lang="de">About</value>
+    </key>
+    <!--<key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>
+    <key xml:id="">
+        <value xml:lang="de"></value>
+    </key>-->
+</collection>

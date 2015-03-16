@@ -32,42 +32,42 @@
     <body>
         <header id="topBar">
             <span>Beethovens Werkstatt</span>
-            <div id="fullscreenButton" class="topButton" title="Vollbildansicht">
-                <label>Vollbild: </label>
+            <div id="fullscreenButton" class="topButton" data-i18n-title="tooltipFullscreen">
+                <label data-i18n-text="buttonFullscreen"></label>
                 <i class="fa fa-toggle-off"/>
             </div>
         </header>
         <div id="facsimileBox">
             <nav id="pagePreview">
-                <h1>Seitenübersicht</h1>
+                <h1 data-i18n-text="buttonPagePreview"></h1>
                 <div class="horizontalScroll">
                     <ul> </ul>
                 </div>
             </nav>
             <div id="mainBox">
-                <div id="reconstructionHint" style="display: none;"> Rekonstruktion von "<span class="stateLabel"/>" <div id="leaveReconstructModeBtn">
+                <!--todo: <div id="reconstructionHint" style="display: none;"> Rekonstruktion von "<span class="stateLabel"/>" <div id="leaveReconstructModeBtn">
                         <i class="fa fa-eye-slash"/> Zurück zur Normalansicht </div>
-                </div>
-                <div id="unsupportedPageWarning" class="infoDialog" style="display: none;">
+                </div>-->
+                <!--todo: <div id="unsupportedPageWarning" class="infoDialog" style="display: none;">
                     <h1>Hinweis</h1>
                     <p>Diese Seite der Handschrift wurde editorisch nicht aufbereitet.
                         Ausführlichere Informationen erhalten Sie zu den Seiten <a href="#" id="hintP14">14</a> und <a href="#" id="hintP17">17</a>. </p>
-                </div>
+                </div>-->
                 <div id="clickedItemDialog" class="infoDialog" style="display: none;">
                     <h1/>
                     <p class="elementInfo"/>
                     <p>
                         <a class="previewLink" href="#" id="showTranscription">
-                            <i class="fa fa-angle-double-right"/> In Transkription anzeigen</a>
+                            <i class="fa fa-angle-double-right"/> <span data-i18n-text="buttonShowInTranscription"></span></a>
                         <a class="previewLink" href="#" id="showCode">
-                            <i class="fa fa-angle-double-right"/> In Codierung anzeigen</a>
+                            <i class="fa fa-angle-double-right"/> <span data-i18n-text="buttonShowInCode"></span></a>
                     </p>
                 </div>
                 <div id="pagination" style="display: none;">
-                    <div id="prevPage" title="Vorhergehende Seite">
+                    <div id="prevPage" data-i18n-title="ButtonPreviousPage">
                         <i class="fa fa-arrow-left"/>
                     </div>
-                    <div id="nextPage" title="Nächste Seite">
+                    <div id="nextPage" data-i18n-title="ButtonNextPage">
                         <i class="fa fa-arrow-right"/>
                     </div>
                 </div>
@@ -80,15 +80,15 @@
                     <ul>
                         <li id="tab_mei" data-target="#view_mei">
                             <i class="fa fa-code fa-lg"/>
-                            <label>Codierung</label>
+                            <label data-i18n-text="tabCode"></label>
                         </li>
                         <li id="tab_desc" data-target="#view_desc">
                             <i class="fa fa-file-text-o fa-lg"/>
-                            <label>Erläuterung</label>
+                            <label data-i18n-text="tabDesc"></label>
                         </li>
                         <li id="tab_overview" class="active" data-target="#view_overview">
                             <i class="fa fa-list-ol"/>
-                            <label>Variantenabfolge</label>
+                            <label data-i18n-text="tabVariants"></label>
                         </li>
                         <!--<li id="tab_compare" data-target="#view_compare">
                             <i class="fa fa-code-fork fa-rotate-90 fa-lg"/>
@@ -102,86 +102,7 @@
             <div id="sideBox_content">
                 <div id="view_overview" style="display: block;"/>
                 <div id="view_compare" style="display: none;"/>
-                <div id="view_desc" style="display: none;">
-                    <h1>Klaviersonate c-Moll Op. 111, 1. Satz</h1>
-                    <h2>Textgenetische Informationen zur Variantenstelle S. 14/17 des Arbeitsmanuskripts (Beethoven-Haus, Bonn, BH 71)</h2>
-                    <p class="info">Info: Alle Varianten werden ihrer Chronologie nach mit
-                        Buchstaben benannt. Bei allen geschlossenen Varianten, d.h. Varianten, die
-                        zwei Anschlussstellen besitzen und somit kontextintegriert sind, wird ein
-                        Großbuchstabe, bei allen offenen Varianten, die nur eine Anschlussstelle am
-                        Anfang besitzen und sich dadurch von den geschlossenen unterscheiden, ein
-                        Kleinbuchstabe verwendet.</p>
-                    <p>Auf <span onclick="$('#hintP14').click();">Seite 14</span> der Werkniederschrift lassen sich mehrere Textschichten und
-                        Arbeitsspuren erkennen. Einige Takte sind mehrfach überarbeitet oder
-                        gestrichen worden. Die Umarbeitung dieser Takte im Zuge einer Revision
-                        lagert Beethoven aufgrund von Platzmangel auf <span class="facsLink" onclick="$('#hintP17').click();">Seite 17</span> des Autographs aus.
-                        Darauf weist ein „<span class="facsLink" onclick="getEventSVG('e8ba466c4-91d3-457d-a67f-a7d28ecbbb14');">Vi=</span>“ am Ende des Taktes 131 hin. Das Gegenstück „<span class="facsLink" onclick="getEventSVG('dePage17');">=de</span>“, das
-                        die Anschlussstelle markiert, findet sich auf S. 17. Ein <span class="facsLink" onclick="getEventSVG('e1ce3a247-29fa-4c3c-a975-bc757b8888de');">durchkreuzter Kreis</span>
-                        am Ende der dort ausgelagerten neuen Takte verweist auf <span class="facsLink" onclick="getEventSVG('circleBack');">sein Pendant</span> vor
-                        Takt 135 auf S. 14. Anhand der Erschließung und Verknüpfung aller Befunde
-                        und Indizien kann die Entstehung dieser Variantenstelle rekonstruiert
-                        werden.</p>
-                    <h3 class="variantDesc">Variante a (T. 132a)</h3>
-                    <p>Eine erste Variante a wurde nicht vollständig ausgeführt, was am <span class="facsLink" onclick="showRect('edirom_surface_29c30112-b25d-442c-b333-ab427f3deb75',4888,1080,7704,1592);">leer
-                        gebliebenen System der linken Hand</span> erkennbar ist.</p>
-                    <h3 class="variantDesc">Variante b (T. 132b)</h3>
-                    <p>Eine kleine Veränderung der Variante a, in der Beethoven die letzte Note
-                        <span class="facsLink" onclick="getEventSVG('e1e6ea6af-9a8f-4037-b5b2-a32e52ffc108');">fis’’</span> durch <span class="facsLink" onclick="getEventSVG('eb1695229-7dac-492f-a3ac-7f57bd4a44fb');">es’’</span> ersetzt, konstituiert Variante b.</p>
-                    <h3 class="variantDesc">Variante c (T. 132c)</h3>
-                    <p>Nach der <span class="facsLink" onclick="getEventSVG('ef32411d4-1c09-4dda-a6a4-7f1931620026');">Streichung</span> des Taktes 132a/b setzt Beethoven neu an. Obwohl die Note
-                        <span class="facsLink" onclick="getEventSVG('jkljlkasdnkldasnldasjidasdmnasdnöö0');">c’’’’</span> in der rechten Hand wie eine Viertelnote geschrieben ist, ist nicht
-                        klar, welche Rhythmik Beethoven dafür vorgesehen hat. Das „<span class="facsLink" onclick="getEventSVG('e8359264c-3d7c-4c1e-b134-f847f2dea543');">loco</span>“ hebt die
-                        Oktavierung ab der ersten Sechzehntelnote <span class="facsLink" onclick="getEventSVG('e4b23505b-8e53-4df6-8c98-48859ac65b67');">es’’’</span> auf. Die linke Hand steht im
-                        Violinschlüssel (<span class="facsLink" onclick="showRect('edirom_surface_29c30112-b25d-442c-b333-ab427f3deb75',2264,1088,2496,1592);">s. T. 131</span>), sodass rechte und linke Hand dasselbe spielen.
-                        Deshalb nimmt er eine weitere Überarbeitung des Taktes vor.</p>
-                    <h3 class="variantDesc">Variante d (T. 132d)</h3>
-                    <p>Beethoven wechselt das Schreibmittel von der Tintenfeder zum Bleistift, um
-                        zunächst den Melodieverlauf der rechten Hand zu skizzieren. Dabei sind die
-                        <span class="facsLink" onclick="showRect('edirom_surface_29c30112-b25d-442c-b333-ab427f3deb75',2768,1656,4696,1984);">ersten beiden Sechzehntelgruppen</span> nur als Notenkopf mit -hals notiert. Die
-                        erste Sechzehntelgruppe wird mit der Oktavierungsvorschrift („<span class="facsLink" onclick="getEventSVG('e19e82ec7-5340-4cb7-83c5-f2db5194cf3f');">8va</span>“)
-                        versehen. Die zusätzliche „<span class="facsLink" onclick="getEventSVG('e545ae791-0b37-429e-ae07-00b83b51990d');">8</span>“ vor „8va“ notiert Beethoven, um zu
-                        kennzeichnen, dass auch die nun in die Sechzehntelgruppe integrierte Note
-                        <span class="getEventSVG('jkljlkasdnkldasnldasjidasdmnasdnöö0');">c’’’</span> aus Variante c oktaviert wird. Das „<span class="facsLink" onclick="getEventSVG('e8359264c-3d7c-4c1e-b134-f847f2dea543');">loco</span>“ aus Variante c gilt hier ab
-                        der <span class="facsLink" onclick="getEventSVG('e0c006c21-0a2b-4cd3-ab8e-a122d838fc8f');">zweiten Sechzehntelgruppe</span>. Die linke Hand in Variante d ist bei der
-                        Neukonzeption gedanklich bereits gestrichen, weshalb sie in der
-                        Sichtbar-Machung im Faksimile keine farbliche Hervorhebung erfährt und in
-                        der Transkription das System der linken Hand leer bleibt.</p>
-                    <h3 class="variantDesc">Variante E (T. 132E–133E)</h3>
-                    <p>Die mit Bleistift skizzierte Variante d übernimmt Beethoven und überschreibt
-                        die frühere, mit hellerer Tinte notierte Variante c mit einer dunkleren. Die
-                        linke Hand passt er an. Die <span class="facsLink" onclick="getEventSVG('efba1f627-9435-42f1-8bd1-b2ef85d1d57e');">dichten Streichungen</span> innerhalb des Taktes 132E
-                        entstanden zu diesem Zeitpunkt. Die Takte 132E–133E schließen an den ersten
-                        vollgültigen Takt 135 an und der Textfluss führt von dort bis zum Ende des
-                        Satzes. Die <span class="facsLink" onclick="getEventSVG('ed428ca1d-47c3-4e2b-a64a-25022d208b71');">Tilgung</span> dieser Takte erfolgte später.</p>
-                    <h3 class="variantDesc">Variante f (T. 132f–133f)</h3>
-                    <p>Im Zuge von Revisionen überarbeitet Beethoven die Takte 132E–133E erneut.
-                        Aufgrund von Platzmangel weicht er dazu auf <span onclick="$('#hintP17').click();">S. 17</span>, die erste Leerseite nach
-                        dem Satzende, aus. Der Versuch (Variante f), bei dem Beethoven übrigens in
-                        der <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',1320,408,4144,1032);">rechten Hand</span> mit Ausnahme der <span class="facsLink" onclick="getEventSVG('e085b3d64-c6fa-4a8f-b8fd-0f07291ffd9a');">vorletzten Note</span> zu Variante a zurückkehrt,
-                        bricht nach nicht ganz zwei Takten ab. Zwar <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',4112,540,5460,1280);">skizziert</span> er in T. 133f noch die
-                        <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',4112,540,5460,1280);">rechte Hand</span> in den Tonhöhen, nicht aber in der Rhythmik. Die <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',4056,1160,5608,1504);">linke Hand</span>
-                        bleibt gänzlich unausgeführt. Auch <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',3076,1160,3980,1600);">Zählzeit 3 und 4</span> von T. 132f sind in der
-                        linken Hand nur skizziert, da die <span class="facsLink" onclick="getEventSVG('e05b7210e-e12a-469d-907b-05e8b322ca7e');">Sechzehntel-Balken</span> noch nicht vorhanden
-                        sind.</p>
-                    <h3 class="variantDesc">Variante G (T. 132G–134G)</h3>
-                    <p>Den Takt 132f übernimmt Beethoven in die nächste Variante G, vervollständigt
-                        nun aber die <span class="facsLink" onclick="getEventSVG('e05b7210e-e12a-469d-907b-05e8b322ca7e');">Rhythmik</span> in der linken Hand (T. 132G). Diese Variante umfasst
-                        insgesamt drei Takte, ist also um einen Takt länger als die für kurze Zeit
-                        gültige Variante E.</p>
-                    <h3 class="variantDesc">Variante H (T. 132H–134H)</h3>
-                    <p>In einer letzten Variante H ändert Beethoven die Tonhöhen einzelner Noten in
-                        T. 133 und 134. H stellt die letzte gültige Variante dar.</p>
-                    <p>Der jeweils letzte Takt in den Varianten E, G und H ist bis auf geringe
-                        Unterschiede gleich (T. 133E, 134G und 134H). Aufgrund verschiedener
-                        Akkordbrechung braucht es in Variante E einen Takt (T. 132E), in Variante G
-                        und H zwei Takte (T. 132G/H–133G/H), um die zwei Oktaven hin zum Anfangston
-                        von T. 133E bzw. 134G/H zu durchschreiten.</p>
-                    <h3>Sonstige Anmerkungen</h3>
-                    <p>Die <span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',1600,3024,4456,4792);">Bleistiftnotate</span> von Beethoven auf S. 17 entstanden von der
-                        Variantenstelle unabhängig zu einem späteren Zeitpunkt – vermutlich in
-                        Zusammenhang mit einer Rücksprache mit dem Kopisten Wenzel Rampl, von dem
-                        der Satz „<span class="facsLink" onclick="showRect('edirom_surface_87b54dac-660e-48e9-af3f-1a41557d8aa4',1632,3800,3208,3984);">soll ich in der hohe schreiben</span>“ stammt.</p>
-                </div>
+                <div id="view_desc" style="display: none;"/>
                 <div id="view_mei" style="display: none;">
                     <div id="mei_editor"/>
                 </div>
@@ -191,19 +112,9 @@
         <div id="aboutBox" style="display: none;">
             <div class="inner">
                 <img src="resources/images/logoBW.png" id="logoBW"/>
-                <p> Diese Demoversion wurde von den Mitarbeitern des Projekts Beethovens Werkstatt entwickelt. 
-                    Sie beinhaltet Codierungen der Beethovenschen Manuskripte denen das XML-basierte Datenformat 
-                    <a href="http://music-encoding.org" target="_blank">MEI</a> zugrunde liegt. Diese werden mithilfe 
-                    von skalierbaren Vektorgrafiken (<a href="http://www.w3.org/TR/2003/REC-SVG11-20030114/" target="_blank">SVG</a>s) mit den 
-                    hochauflösenden Faksimiles des <a href="http://www.beethoven-haus-bonn.de" target="_blank">Beethoven-Hauses
-                        Bonn</a> verknüpft. Die Darstellung der Notentexte 
-                    erfolgt mit <a href="http://www.verovio.org" target="_blank">Verovio</a>, welches MEI-Daten in gewohnte Notenschrift konvertiert.
-                </p>
+                <p data-i18n-text="aboutText"></p>
                 <p>
-                    Der vorliegende Prototyp ist weder methodisch noch technisch ausgereift und ist lediglich als Ausgangspunkt der 
-                    weiteren Arbeiten des Projekts zu verstehen.
-                    <span class="version">Version 0.2.1 (2014-12-01) | © 2014 Beethovens
-                        Werkstatt</span>
+                   <span class="version" data-i18n-text="versionString"></span>
                 </p>
             </div>
         </div>
@@ -211,17 +122,17 @@
         <div id="loading">
             <div class="inner">
                 <h1>
-                    <i class="fa fa-cog fa-spin"/> Anwendung wird geladen</h1>
+                    <i class="fa fa-cog fa-spin"/> <span data-i18n-text="loadingStartup"></span></h1>
             </div>
         </div>
         
         <div style="display: none;" id="deposit"/>
         
         <footer id="bottomBar">
-            <span class="funder">Gefördert durch die <a href="http://www.adwmainz.de" target="_blank" title="Webseite der Akademie der Wissenschaften und der Literatur |&#160;Mainz">Akademie der Wissenschaften und der Literatur | Mainz</a>
+            <span class="funder"><span data-i18n-text="fundedBy"></span> <a href="http://www.adwmainz.de" target="_blank">Akademie der Wissenschaften und der Literatur | Mainz</a>
             </span>
             <span id="status"/>
-            <span id="about">About</span>
+            <span id="about" data-i18n-text="buttonAbout"></span>
         </footer>
         
         <!-- build:js resources/js/ace/ace.js -->
