@@ -46,6 +46,7 @@ var langFile = {};
 var vrvToolkit = new verovio.toolkit();
 //facsimileViewer
 var facs = L.facsimileViewer('mainBox');
+facs.options.lang = 'de';
 //xml Editor (ace)
 var editor = ace.edit("mei_editor");
 editor.setTheme("ace/theme/textmate");
@@ -126,7 +127,7 @@ function getFeatures() {
     	       var banClass = (page.containsMusic) ? 'music' : 'noMusic';
     	       
     	       //generates and appends the list item to the pagePreview area
-    	       var entry = '<li id="preview_' + page.id + '" class="' + banClass + '"><img src="' + page.path + meiFile.sourceRef + '_p' + pageNum + '_preview.png"/><label>Seite ' + page.n + '</label></li>';
+    	       var entry = '<li id="preview_' + page.id + '" class="' + banClass + '"><img src="' + page.path + meiFile.sourceRef + '_p' + pageNum + '_preview.png"/><label><span data-i18n-text="singlePage">' + langFile['singlePage'] + '</span> ' + page.n + '</label></li>';
     	       $('#pagePreview ul').append(entry);
     	       
     	       //adds listener to showPage() when list item is clicked
@@ -395,7 +396,7 @@ function getState(state, target) {
  */
 function queryElement(id) {
                     
-    new jQuery.getJSON('resources/xql/queryElement.xql',{sourceID: meiFile.id, pathID: id},function(result) {
+    new jQuery.getJSON('resources/xql/queryElement.xql',{sourceID: meiFile.id, pathID: id, lang: lang},function(result) {
     	
     	var data = result[0];
     	
@@ -417,7 +418,7 @@ function queryElement(id) {
         
         //if target is specified, add corresponding link, triggers getEventSVG
         //todo: differentiate between outgoing and incoming links
-        var link = (typeof data.target !== 'undefined' && data.target !== '') ? '<a href="#" class="previewLink" onclick="getEventSVG(&#34;' + data.target + '&#34;);">Verweis folgen</a>' : '';
+        var link = (typeof data.target !== 'undefined' && data.target !== '') ? '<a href="#" class="previewLink" onclick="getEventSVG(&#34;' + data.target + '&#34;);"><span data-i18n-text="followLink">' + langFile['followLink'] + '</span></a>' : '';
         
         //add description
         $('#clickedItemDialog .elementInfo').html(link + data.stateDesc);
@@ -1042,6 +1043,8 @@ function getLangFile(lang) {
         $('*[data-i18n-text], *[data-i18n-title]').each(function(index) {
             localize($(this));
         });
+        
+        facs.setLanguage(data.lang);
     });
     
 };
@@ -1063,6 +1066,17 @@ function localize(elem) {
         $(elem).attr('title',langFile[key]);    
     }
 };
+
+/*
+ * register listeners for language selection
+ */
+$('#langSelectEN').on('click', function() {
+    getLangFile('en'); 
+});
+$('#langSelectDE').on('click', function() {
+    getLangFile('de'); 
+});
+
 
 /*
  * start of application
