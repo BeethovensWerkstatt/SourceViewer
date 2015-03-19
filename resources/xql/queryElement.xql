@@ -21,7 +21,7 @@ declare option exist:serialize "method=xml media-type=text/plain omit-xml-declar
 
 let $source.id := request:get-parameter('sourceID','')
 let $svg.id := request:get-parameter('pathID','')
-
+let $language := request:get-parameter('lang','en')
 (:
     get the MEI document and the base path for XSLTs (which is relative to the path of this xQuery)
 :)
@@ -32,7 +32,7 @@ let $xslPath := '../xslt/'
     generate a JSON object with information about the element to which the specified path belongs
 :)
 let $result := transform:transform($doc,
-               doc(concat($xslPath,'queryElement.xsl')), <parameters><param name="svg.id" value="{$svg.id}"/></parameters>)
+               doc(concat($xslPath,'queryElement.xsl')), <parameters><param name="svg.id" value="{$svg.id}"/><param name="lang" value="{$language}"/></parameters>)
 
 return
     $result

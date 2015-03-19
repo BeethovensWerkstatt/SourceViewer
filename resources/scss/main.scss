@@ -29,6 +29,15 @@ body {
 			float: right;
 			margin: 0 5px 0 10px;
 			cursor: pointer;
+			
+			&#langSelectEN {
+			    margin: 0 15px 0 0;
+			}
+			
+			&#langSelectDE:after {
+			    content: '|';
+			    margin-left: 5px;
+			}
 		}
 	}
 	

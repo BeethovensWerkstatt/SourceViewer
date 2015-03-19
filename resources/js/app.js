@@ -35,6 +35,10 @@ var highlightColor = '#00ffff';
 //duration in ms for displaying overlays
 var ms = 8000;
 
+//default language;
+var lang = 'de';
+var langFile = {};
+
 /*
  * Setup of components
  */
@@ -42,6 +46,7 @@ var ms = 8000;
 var vrvToolkit = new verovio.toolkit();
 //facsimileViewer
 var facs = L.facsimileViewer('mainBox');
+facs.options.lang = 'de';
 //xml Editor (ace)
 var editor = ace.edit("mei_editor");
 editor.setTheme("ace/theme/textmate");
@@ -122,7 +127,7 @@ function getFeatures() {
     	       var banClass = (page.containsMusic) ? 'music' : 'noMusic';
     	       
     	       //generates and appends the list item to the pagePreview area
-    	       var entry = '<li id="preview_' + page.id + '" class="' + banClass + '"><img src="' + page.path + meiFile.sourceRef + '_p' + pageNum + '_preview.png"/><label>Seite ' + page.n + '</label></li>';
+    	       var entry = '<li id="preview_' + page.id + '" class="' + banClass + '"><img src="' + page.path + meiFile.sourceRef + '_p' + pageNum + '_preview.png"/><label><span data-i18n-text="singlePage">' + langFile['singlePage'] + '</span> ' + page.n + '</label></li>';
     	       $('#pagePreview ul').append(entry);
     	       
     	       //adds listener to showPage() when list item is clicked
@@ -391,7 +396,7 @@ function getState(state, target) {
  */
 function queryElement(id) {
                     
-    new jQuery.getJSON('resources/xql/queryElement.xql',{sourceID: meiFile.id, pathID: id},function(result) {
+    new jQuery.getJSON('resources/xql/queryElement.xql',{sourceID: meiFile.id, pathID: id, lang: lang},function(result) {
     	
     	var data = result[0];
     	
@@ -413,7 +418,7 @@ function queryElement(id) {
         
         //if target is specified, add corresponding link, triggers getEventSVG
         //todo: differentiate between outgoing and incoming links
-        var link = (typeof data.target !== 'undefined' && data.target !== '') ? '<a href="#" class="previewLink" onclick="getEventSVG(&#34;' + data.target + '&#34;);">Verweis folgen</a>' : '';
+        var link = (typeof data.target !== 'undefined' && data.target !== '') ? '<a href="#" class="previewLink" onclick="getEventSVG(&#34;' + data.target + '&#34;);"><span data-i18n-text="followLink">' + langFile['followLink'] + '</span></a>' : '';
         
         //add description
         $('#clickedItemDialog .elementInfo').html(link + data.stateDesc);
@@ -1008,10 +1013,80 @@ function toggleFullscreen() {
     }
 };
 
+/*
+ * function getBaseLanguage()
+ * identifies language of browser (should work on recent Firefox, Chrome, Safari and IE11)
+ */
+function getBaseLanguage() {
+
+    var prefLang = 'de';
+    if (typeof navigator.language === 'string' && navigator.language.length > 0)
+        prefLang = navigator.language;
+    else if(typeof navigator.browserLanguage === 'string' && navigator.browserLanguage.length > 0)
+        prefLang = navigator.browserLanguage;
+        
+        
+    getLangFile(prefLang);
+};
+
+/*
+ * function getLangFile(lang)
+ * 
+ * gets a JSON file with all language strings from the server
+ */
+function getLangFile(targetLang) {
+    
+    new jQuery.getJSON('resources/xql/getLangFile.xql',{prefLang: targetLang},function(data) {
+        
+        console.log('lang (wanted): ' + targetLang);
+        
+        lang = data.lang;
+        
+        console.log('data.lang: ' + data.lang);
+        console.log('lang (new): ' + lang);
+        
+        langFile = data.localization;
+        
+        $('*[data-i18n-text], *[data-i18n-title]').each(function(index) {
+            localize($(this));
+        });
+        
+        facs.setLanguage(data.lang);
+    });
+    
+};
+
+/*
+ * function localize(elem)
+ * 
+ * gets the localization for the specified element, based on the currently selected langFile
+ */
+function localize(elem) {
+    
+    if(typeof $(elem).attr('data-i18n-text') !== 'undefined') {
+        var key = $(elem).attr('data-i18n-text');
+        $(elem).html(langFile[key]);    
+    }
+    
+    if(typeof $(elem).attr('data-i18n-title') !== 'undefined') {
+        var key = $(elem).attr('data-i18n-title');
+        $(elem).attr('title',langFile[key]);    
+    }
+};
+
+/*
+ * register listeners for language selection
+ */
+$('#langSelectEN').on('click', function() {
+    getLangFile('en'); 
+});
+$('#langSelectDE').on('click', function() {
+    getLangFile('de'); 
+});
+
 
 /*
  * start of application
  */
-
 getFeatures();
-
+getBaseLanguage();
