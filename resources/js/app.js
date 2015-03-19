@@ -1034,10 +1034,17 @@ function getBaseLanguage() {
  * 
  * gets a JSON file with all language strings from the server
  */
-function getLangFile(lang) {
+function getLangFile(targetLang) {
     
-    new jQuery.getJSON('resources/xql/getLangFile.xql',{prefLang: lang},function(data) {
+    new jQuery.getJSON('resources/xql/getLangFile.xql',{prefLang: targetLang},function(data) {
+        
+        console.log('lang (wanted): ' + targetLang);
+        
         lang = data.lang;
+        
+        console.log('data.lang: ' + data.lang);
+        console.log('lang (new): ' + lang);
+        
         langFile = data.localization;
         
         $('*[data-i18n-text], *[data-i18n-title]').each(function(index) {

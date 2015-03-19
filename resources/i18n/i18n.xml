@@ -153,24 +153,20 @@
         <value xml:lang="en">slur</value>
     </key>
     <key xml:id="startingAtTstamp">
-        <value xml:lang="de">von Zählzeit</value>
-        <value xml:lang="en">from beat</value>
+        <value xml:lang="de">von Zählzeit @@1%%</value>
+        <value xml:lang="en">from beat @@1%%</value>
     </key>
     <key xml:id="endingAtTstamp">
-        <value xml:lang="de">bis Zählzeit</value>
-        <value xml:lang="en">to beat</value>
+        <value xml:lang="de">bis Zählzeit @@1%%</value>
+        <value xml:lang="en">to beat @@1%%</value>
     </key>
-    <key xml:id="ofNextMeasure">
-        <value xml:lang="de">des Folgetaktes</value>
-        <value xml:lang="en">of the following measure</value>
+    <key xml:id="endingAtTstampOfNextMeasure">
+        <value xml:lang="de">bis zur Zählzeit @@1%% des Folgetaktes</value>
+        <value xml:lang="en">up to beat @@1%% of the following measure</value>
     </key>
-    <key xml:id="ofFollowingMeasure.part1">
-        <value xml:lang="de">des</value>
-        <value xml:lang="en">of the</value>
-    </key>
-    <key xml:id="ofFollowingMeasure.part2">
-        <value xml:lang="de">-nächsten Taktes</value>
-        <value xml:lang="en">-next measure</value>
+    <key xml:id="endingAtTstampOfFollowingMeasure">
+        <value xml:lang="de">bis zur Zählzeit @@2%% des @@1%%-nächsten Taktes</value>
+        <value xml:lang="en">up to beat @@2%% of the @@1%%-next measure</value>
     </key>
     <key xml:id="dynamic.dir">
         <value xml:lang="de">Dynamik-Angabe</value>
@@ -195,6 +191,14 @@
     <key xml:id="clarification">
         <value xml:lang="de">Verdeutlichung</value>
         <value xml:lang="en">Clarification</value>
+    </key>
+    <key xml:id="artic">
+        <value xml:lang="de">Artikulationsanweisung (@@1%%)</value>
+        <value xml:lang="en">Instruction on articulation (@@1%%)</value>
+    </key>
+    <key xml:id="artic.dot">
+        <value xml:lang="de">Artikulation: Staccato-Punkt</value>
+        <value xml:lang="en">Articulation: Staccato-Dot</value>
     </key>
     <!--
     
