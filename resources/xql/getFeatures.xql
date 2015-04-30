@@ -102,12 +102,23 @@ declare function local:getStates($doc,$genDesc) as xs:string {
     let $statesString := for $state in $states
                          let $open := if('#bwTerm_openVariant' = tokenize($state/@decls,' ')) then ('true') else('false')
                          let $position := count($state/preceding-sibling::mei:state) + 1
+                         let $modifications := if($position gt 1) 
+                                               then ($doc//mei:*[substring(@changeState,2) = $state/@xml:id]) 
+                                               else($doc//mei:*[substring(@changeState,2) = $state/following-sibling::mei:state[1]/@xml:id])
+                         let $pages := for $modification in $modifications
+                                       return
+                                           if($modification/@facs)
+                                           then('"' || $doc/id(substring($modification/@facs,2))/ancestor::mei:surface/@xml:id || '"')
+                                           else('"' || $doc/id(substring(($modification//@facs)[1],2))/ancestor::mei:surface/@xml:id || '"')
                          return (
                             '{' ||
                                 '"id":"' || $state/@xml:id || '",' ||
                                 '"open":' || $open || ',' ||
                                 '"position":' || $position || ',' || 
-                                '"label":"' || $state/@label || '"' ||
+                                '"label":"' || $state/@label || '",' ||
+                                '"pages":[' || string-join(distinct-values($pages[. != '""']),',') || '],' ||
+                                '"stateDesc":"' || normalize-space(string-join($state/mei:stateDesc//text(),' ')) || '",' ||
+                                '"invariantDesc":"(vorläufig: ' || normalize-space(string-join($state/mei:stateDesc//text(),' ')) || ')"' ||
                             '}'
                          )
      (:
@@ -129,7 +140,7 @@ declare function local:getStates($doc,$genDesc) as xs:string {
     For the time being, a default value is provided (no parameter is sent from the Javascript side),
     so selecting a different source is done by changing this default value. 
 :)
-let $source.id := request:get-parameter('sourceID','new31e31248-19d3-4916-97b8-9fa3c06a56b8')
+let $source.id := request:get-parameter('sourceID','jkljsdhjkdshkdbnjkdsjndsh')
 
 let $doc := collection('/db/apps/SourceViewer/contents/')//mei:mei[@xml:id = $source.id]
 

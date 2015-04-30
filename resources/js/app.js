@@ -21,16 +21,31 @@ var activePage = {};
 var reconstructingStateID = '';*/
 
 //svg-overlays for textual layers on the current page 
-var overlays = [];
+var overlays = {};
+//json object with info about coloring elements according to different perspectives
+var overlayInfo = {};
+
+//currently active layer (overlaid on facsimile)
+var activeOverlay;
+
+//variables for highlighting states in the facsimile
+var currentState = '';
+var currentPerspective = 'plain';
 
 //used removing the dimming after initial loading of content
 var openCalls = 0;
 
 //definition of colors to be used throughout the application (passed into database as well)
-var colors = ['#f663ff','#ff4b00','#dc322f','#d33682','#6c71c4','#0096ff','#2aa198','#859900'];
+//var colors = ['#f663ff','#ff4b00','#dc322f','#d33682','#6c71c4','#0096ff','#2aa198','#859900'];
+//var colors = ['#a6b2ce','#8091b7','#566a97','#293e6e','#0a245e','#0096ff','#2aa198','#859900'];
+//var colors = ['#859900','#2aa198','#268bd2','#6c71c4','#d33682','#dc322f','#cb4b16','#b58900'];
+
+var colors = ['#859900','#d33682','#2aa198','#cb4b16','#268bd2','#6c71c4','#dc322f','#b58900'];
+
 var paperColor = '#f8f4dc';
 var suppliedColor = '#999999';
-var highlightColor = '#00ffff';
+//var highlightColor = '#beddff';
+var highlightColor = '#c64863';
 
 //duration in ms for displaying overlays
 var ms = 8000;
@@ -60,7 +75,7 @@ editor.setReadOnly(true);
 
 /*
  * function loadMEI()
- * loads an MEI file (hard-coded in getMEI.xql) and puts it into the xml editor (read only)
+ * loads an MEI file and puts it into the xml editor (read only)
  */
 function loadMEI() {
     new jQuery.get('resources/xql/getMEI.xql',{sourceID: meiFile.id}, function(data) {
@@ -151,6 +166,14 @@ function getFeatures() {
     	       });
     	       
     	    });
+    	    // automatically open first page
+    	    showPage(file.pages[0].id);
+    	    
+    	    //if only one page available, remove page overview
+    	    if(file.pages.length = 1) {
+    	        $('#pagePreview h1').click();
+    	        $('#pagePreview').hide();
+    	    }
     	    
     	    //get the number of outgoing ajax calls
     	    openCalls = file.states[0].states.length;
@@ -158,26 +181,68 @@ function getFeatures() {
     	    //prepare the renderings in overview mode
     	    $.each(file.states[0].states, function(index, state) {
     	        
-    	        var verovioContainer = '<div class="verovioContainer" id="container_' + state.id + '"></div>';
-    	        $('#view_overview').append(verovioContainer);
+    	        //generate a shared box for the state
+    	        var stateBox = '<div id="stateContainer_' + state.id + '" class="stateContainer"></div>';
+    	        $('#view_overview').append(stateBox);
+                
+                var stateHeading = '<h1><i class="toggle fa fa-caret-down fa-fw"></i><div class="headingIcon"><i class="facsOverlay fa fa-eye fa-fw" data-i18n-title="highlightInFacsimile"></i></div>  '+ state.label +'</h1>';
+                var stateBox = '<div class="contentBox"></div>';
+                
+                $('#stateContainer_' + state.id).append(stateHeading);
+                $('#stateContainer_' + state.id).append(stateBox);
+                
+                //event listener to minimize the state's box
+                $('#stateContainer_' + state.id + ' i.fa.toggle').on('click',function() {
+    	            $(this).toggleClass('fa-caret-down').toggleClass('fa-caret-right');
+    	            $('#stateContainer_' + state.id + ' .contentBox').slideToggle();
+    	        });
+                
+                //set up plain view
+                var plainBox = '<div class="perspectiveBox plain"></div>';
+                $('#stateContainer_' + state.id + ' .contentBox').append(plainBox);
+                var plainTarget = 'verovioPlain_' + state.id;
+                $('#stateContainer_' + state.id + ' .perspectiveBox.plain').append('<div class="verovioBox" id="' + plainTarget + '"></div>');
+                
+                //set up layers view
+                var layersBox = '<div class="perspectiveBox layers" style="display: none;"></div>';
+                $('#stateContainer_' + state.id + ' .contentBox').append(layersBox);
+                var layersTarget = 'verovioLayers_' + state.id;
+                $('#stateContainer_' + state.id + ' .perspectiveBox.layers').append('<div class="verovioBox" id="' + layersTarget + '"></div>');
+                //add state description
+                var layersDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + state.stateDesc + '</div></div>';
+                $('#stateContainer_' + state.id + ' .perspectiveBox.layers').append(layersDesc);
+                
+                //set up invariance view
+                var invarianceBox = '<div class="perspectiveBox invariance" style="display: none;"></div>';
+                $('#stateContainer_' + state.id + ' .contentBox').append(invarianceBox);
+                var invarianceTarget = 'verovioInvariance_' + state.id;
+                $('#stateContainer_' + state.id + ' .perspectiveBox.invariance').append('<div class="verovioBox" id="' + invarianceTarget + '"></div>');
+                //add state description
+                var invarianceDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + state.invariantDesc + '</div></div>';
+                $('#stateContainer_' + state.id + ' .perspectiveBox.invariance').append(invarianceDesc);
+                
+                //add listener to show / hide comments (works across layers and invariance view)
+                $('#stateContainer_' + state.id + ' .descBox i.fa.descToggle').on('click',function() {
+    	            $('#stateContainer_' + state.id + ' .descBox i.fa.descToggle').toggleClass('fa-caret-down').toggleClass('fa-caret-right');
+    	            $('#containerLayers_' + state.id + ' .descBox .content').slideToggle();
+    	        });
+                
+                
     	        
-    	        //todo: reconstructing
-    	        /*var revertTo = '<div class="revertBtn" id="revertBtn_' + state.id + '"><i class="fa fa-eye"></i> Rekonstruktion</div>';*/
-    	        
-    	        //add color sample, based on the global colors and the index of the current state
-    	        $('#container_' + state.id).append('<h1><span class="colorSample" style="background-color: ' + colors[index] + ';"/>'+ state.label +'</h1>');
-    	        
-    	        //adds a color sample in the source description
-    	        //todo[fix]:  put this into a better place
-    	        $($('h3.variantDesc')[index]).prepend('<span class="colorSample" style="background-color: ' + colors[index] + ';"/> ');
-    	        
-    	        //todo: reconstructing
-    	        /*$('#container_' + state.id).append(revertTo);*/
-    	        
-    	        //create container for rendering and get rendering for that state
-                var target = 'verovio_' + state.id;
-                $('#container_' + state.id).append('<div class="verovioBox" id="' + target + '"></div>');
-                getState(state, '#' + target);
+    	        /*$('#containerLayers_' + state.id + ' i.fa.facsOverlay').on('click',function() {
+    	            console.log('highlight ' + state.id + ' in mode layers');
+    	            try {
+    	               facs.activateLayer(overlays[state.id]);
+    	            } catch(e) {}
+    	        });*/
+                
+                
+                var targets = [];
+                targets.push('#' + plainTarget);
+                targets.push('#' + layersTarget);
+                targets.push('#' + invarianceTarget)
+                
+                getState(state, targets);
     
                 //todo: reconstructing
                 /*$('#revertBtn_' + state.id).on('click',function() {
@@ -188,13 +253,7 @@ function getFeatures() {
                     
                     enterReconstructMode(state.id);
                 });*/     
-                
-                //reduce the number of outgoing ajax calls
-                openCalls--;
-                
-                //when all ajax calls have been send out, raise the curtain 
-                if(openCalls === 0)
-                    $('#loading').fadeOut();
+                    
     	    });    	    
     });
     
@@ -245,8 +304,15 @@ function showPage(pageID, func) {
     $('#prevPage').toggleClass('inactive',meiFile.pages[0].id === page.id);
     $('#nextPage').toggleClass('inactive',meiFile.pages[meiFile.pages.length - 1].id === page.id);
     
-    //bring prevPage and nextPage buttons to front
-    $('#pagination').fadeIn();
+    //show page turn only when there is more than one page
+    if(meiFile.pages.length > 1) {
+        //bring prevPage and nextPage buttons to front
+        $('#pagination').fadeIn();    
+    } else {
+        $('#pagination').hide();
+    }
+    
+    
     
     //destroy previous image from facsViewer (unloads all listeners)
     facs.unload();
@@ -261,10 +327,124 @@ function showPage(pageID, func) {
         overlays: []
     },page.measures,scaleFactor);
     
+    
+    //create box in layers control for selecting the perspective
+    var viewsBox = '<div id="perspectiveSwitches"></div>';
+    $('form.leaflet-control-layers-list').before(viewsBox);
+    
+    //create the contents for that box
+    var heading = '<h1 class="controlHeading" data-i18n-text="perspectiveSwitch"></h1><form id="perspectiveForm"></form>';
+    var plainView = '<label><input type="radio" class="leaflet-control-layers-selector perspectiveRadio" name="leaflet-base-layers" checked="checked" value="plain"><span data-i18n-text="tabPlainPerspective"></span></label>';
+    var layersView = '<label><input type="radio" class="leaflet-control-layers-selector perspectiveRadio" name="leaflet-base-layers" checked="" value="layers"><span data-i18n-text="tabLayersPerspective"></span></label>';
+    var invarianceView = '<label><input type="radio" class="leaflet-control-layers-selector perspectiveRadio" name="leaflet-base-layers" checked="" value="invariance"><span data-i18n-text="tabInvariancePerspective"></span></label>';
+    var separator = '<div class="leaflet-control-layers-separator"></div>';
+    
+    //insert everything into the HTML
+    $('#perspectiveSwitches').append(heading);
+    $('#perspectiveForm').append(plainView).append(layersView).append(invarianceView);
+    $('#perspectiveSwitches').append(separator);
+    
+    //localize elements
+    $('#perspectiveForm span, #perspectiveSwitches h1').each(function(index) {
+        localize($(this));
+    })
+    
+    $('#perspectiveForm input[value = ' + currentPerspective + ']').prop('checked',true);
+    
+    $('#perspectiveForm').on('change',function(e) {
+        var val = $('#perspectiveForm input:checked').val();
+        
+        switchPerspective(val);
+    });
+    
+    //todo: curtain
+    //$('form.leaflet-control-layers-list').before('<h1 style="font-weight: 500;">Faksimile überlagern</h1>');
+    //$('form.leaflet-control-layers-list').before('<div class="leaflet-control-layers-separator"></div>');
+    
+    $('form.leaflet-control-layers-list .leaflet-control-layers-separator').css('display','block;');
+    
     //load SVG overlays (if any) and pass over successFunc
     if(page.hasSVG)
         getSVGs(page.id, func);
-         
+    
+    //add separator after measure number control
+    $('.leaflet-control-layers-overlays > label:first-child').after(separator);
+    
+    //add additional listener to map's "on.overlayadd" event
+    facs._map.on('overlayadd', function(e){
+        
+        //the layer with measure numbers will fail this check, only real overlays continue
+        if(typeof e._image === 'undefined')
+            return;
+        
+        var eventID = e._leaflet_id;
+        var temp = {};
+        var activeStateID;
+        
+        for (var key in overlays) {
+        
+            if(!overlays.hasOwnProperty(key))
+                continue;
+        
+            if(overlays[key]._leaflet_id === eventID) {
+                temp = overlays[key];
+                activeStateID = key;
+            }
+                
+        }
+        
+        if(typeof activeOverlay !== 'undefined' && activeOverlay._leaflet_id === eventID) {
+            console.log('layer already active');
+            return;
+        }
+        
+        activeOverlay = temp;
+        currentState = activeStateID;
+        $('.stateContainer h1.active').removeClass('active');
+        $('#stateContainer_' + activeStateID + ' h1').addClass('active');
+        adjustOverlay();
+    });
+};
+
+/*
+ * getOverlayInfo(sourceID)
+ * gets all information about the elements belonging to a given state
+ * and how these elements should be colored for a certain perspective
+ * adds this information to meiFile
+ */
+function getOverlayInfo(sourceID) {
+    
+    new jQuery.getJSON('resources/xql/getOverlayInfo.xql',{sourceID: sourceID},function(result) {
+    	//console.log(result);
+    	
+    	overlayInfo = result;
+    	
+    	for(var j = 0; j< result.layers.length;j++) {
+    	    var layerIDs = result.layers[j].meiIDs;
+    	    $.each(layerIDs, function(index,id) {
+        	    try {
+        	       $('.perspectiveBox.layers svg *[id = ' + id + ']').attr('stroke',colors[j]).attr('fill',colors[j]);
+        	    } catch (e){
+        	        
+        	    }
+        	});    
+    	}
+    	
+    	for(var j = 0; j< result.invariance.length;j++) {
+    	    var invarianceIDs = result.invariance[j].meiIDs;
+    	    $.each(invarianceIDs, function(index,id) {
+        	    try {
+        	        $('.perspectiveBox.invariance svg *[id = ' + id + ']').attr('stroke',colors[j]).attr('fill',colors[j]);
+                } catch (e) {
+                    
+                }
+        	});    
+    	}
+    	
+    	$('#loading').fadeOut();
+    	
+    });
+    
 };
 
 /*
@@ -274,98 +454,112 @@ function showPage(pageID, func) {
  * additional svg for each state for overlay 
  */
 function getSVGs(pageID, successFunc) {
+
+    var pageObj = $.grep(meiFile.pages,function(page,index) {
+        return page.id === pageID; 
+    })[0];
     
-    //the global colors are passed in as string to get corresponding colors in the svg overlays 
-    new jQuery.get('resources/xql/getSVGs.xql', {sourceID: meiFile.id, pageID:pageID, colors: colors.toString()}, function(svg) {
-    	    
-    	    //setup of returning svg:
-    	    /*
+    //define what should happen with the svgs
+    var func = function(svg) {
+        //get global svg as var background    	    
+        var background = $(svg).children('fullSVG').children()[0];
+        //turn into object
+        var newLayer = {'title':'','code':background,'background':true,'headless':true};
+        //add it to facsViewer as background (doesn't trigger a layer button then)
+        facs.addLayer(newLayer);  
+        
+        //get id of background svg
+        var id = $(background).attr('id');
+        
+        //add listener to paths in background svg to trigger queryElement function with id of that path
+        $('svg[id="' + id + '"] path').on('click',function(e){
+           var shape = e.currentTarget;
+           var id = shape.id;
+           queryElement(id);
+        });
+        
+        //collect state svgs in a variable
+        var states = $(svg).children('state');
+        
+        //empty arrays for all states / states not manifested on this page resp.
+        overlays = {};
+        facs.unUsedStates = [];
+        
+        //iterate through all states
+        $.each(states, function(index,state) {
+            
+            //get id from svg element
+            var stateID = $(state).attr('id');
+            //get label from svg element
+            var label = $(state).attr('label');
+            //create object for facsViewer
+            var layerOptions = {'id':stateID,'title':label,'code':$(state).children()[0],'background':false,'headless':false,'colorSample':colors[index]};
+            
+            //get state object from global meiFile, based on equal labels
+            var stateObj = $.grep(meiFile.states[0].states,function(stateObj,i) {
+               return stateObj.label == label;
+            });
+            
+            //checks if current svg has any paths in it -> if the state is manifested on the page 
+            var containsPaths = $($(state).children()[0]).children('path').length > 0;
+            //if no paths are contained, add the index of this state to unUsedStates
+            if(!containsPaths)
+               facs.unUsedStates.push(index);
+            
+            //add svg to facsViewer, preserve the layer in var tmp
+            var tmp = facs.addLayer(layerOptions);
+            
+            //iterate through the indizes of all unUsedStates and disable them
+            $.each(facs.unUsedStates, function(index,indexOfState){
+                //offset the index by +1 because of global "show measures" layer control
+                var elem = $('.leaflet-control-layers-overlays label')[indexOfState + 1];
+                   
+                $(elem).children('input').attr('disabled','disabled');
+                $(elem).css('color','#999999');
+                $(elem).find('.colorSample').css('opacity','0.25');
+            });
+            
+            
+            
+            overlays[state.id] = tmp;
+            
+        });
+        
+        //if successFunc is a function, execute it
+        if(typeof successFunc === 'function')
+            successFunc();  
+    };
+    
+    //if page has been loaded before, use cached data
+    if(typeof pageObj.svg !== 'undefined') {
+        func(pageObj.svg);
+    } else {
+        //the global colors are passed in as string to get corresponding colors in the svg overlays 
+        new jQuery.get('resources/xql/getSVGs.xql', {sourceID: meiFile.id, pageID:pageID, highlightColor: highlightColor, colors: colors.toString()}, function(svg) {
+        	    
+            //setup of returning svg:
+            /*
                 <container>
                     <fullSVG>
                         {$backgroundSvg}
                     </fullSVG>
                     {$svgs}
                 </container>
-    	     */
-    	    
-    	    
-    	    var svg = svg || "";
-            //get global svg as var background    	    
-    	    var background = $(svg).children('fullSVG').children()[0];
-    	    //turn into object
-    	    var newLayer = {'title':'','code':background,'background':true};
-    	    //add it to facsViewer as background (doesn't trigger a layer button then)
-    	    facs.addLayer(newLayer);  
-    	    
-    	    //get id of background svg
-    	    var id = $(background).attr('id');
-    	    
-    	    //add listener to paths in background svg to trigger queryElement function with id of that path
-    	    $('svg[id="' + id + '"] path').on('click',function(e){
-    	       var shape = e.currentTarget;
-    	       var id = shape.id;
-    	       queryElement(id);
-    	    });
-    	    
-    	    //collect state svgs in a variable
-    	    var states = $(svg).children('state');
-    	    
-    	    //empty arrays for all states / states not manifested on this page resp.
-    	    overlays = [];
-    	    facs.unUsedStates = [];
-    	    
-    	    //iterate through all states
-    	    $.each(states, function(index,state) {
-    	        
-    	        //get label from svg element
-    	        var label = $(state).attr('label');
-    	        //create object for facsViewer
-    	        var layerOptions = {'title':label,'code':$(state).children()[0],'background':false,'colorSample':colors[index]};
-    	        
-    	        //get state object from global meiFile, based on equal labels
-    	        var stateObj = $.grep(meiFile.states[0].states,function(stateObj,i) {
-    	           return stateObj.label == label;
-    	        });
-    	        
-    	        //checks if current svg has any paths in it -> if the state is manifested on the page 
-    	        var containsPaths = $($(state).children()[0]).children('path').length > 0;
-    	        //if no paths are contained, add the index of this state to unUsedStates
-    	        if(!containsPaths)
-    	           facs.unUsedStates.push(index);
-    	        
-    	        //add svg to facsViewer, preserve the layer in var tmp
-    	        var tmp = facs.addLayer(layerOptions);
-    	        
-    	        //iterate through the indizes of all unUsedStates and disable them
-    	        $.each(facs.unUsedStates, function(index,indexOfState){
-    	            //offset the index by +1 because of global "show measures" layer control
-                    var elem = $('.leaflet-control-layers-overlays label')[indexOfState + 1];
-                       
-                    $(elem).children('input').attr('disabled','disabled');
-                    $(elem).css('color','#999999');
-                    $(elem).find('.colorSample').css('opacity','0.25');
-                });
-    	        
-    	        //todo[fix]: the following line: what for?
-    	        stateObj["overlay"] = tmp;
-    	        
-    	        //add facsViewer overlay to global overlays array
-    	        overlays.push(tmp);
-    	        
-    	    });
-    	    
-    	    //if successFunc is a function, execute it
-    	    if(typeof successFunc === 'function')
-                successFunc();    	    
-    });
+             */
+            var svg = svg || "";
+            pageObj.svg = svg;
+            func(svg);
+        });    
+    }
+    
 };
 /*
- * function getState(state, target) 
+ * function getState(state, targets) 
  * gets reduced MEI file reflecting only one state, based on 
- * the state object. passes target parameter to 
+ * the state object. passes targets parameter to 
  * renderMEI function 
  */
-function getState(state, target) {
+function getState(state, targets) {
                     
     new jQuery.ajax('resources/xql/getMEI.xql',{
         method: 'get',
@@ -374,7 +568,15 @@ function getState(state, target) {
     	    
     	    var response = result || "";
             mei = response;
-            renderMEI(mei, target);
+            renderMEI(mei, targets);
+            
+            //reduce the number of outgoing ajax calls
+            openCalls--;
+            
+            //when all ajax calls have been send out, raise the curtain 
+            if(openCalls === 0) {
+                getOverlayInfo(meiFile.id);
+            }
     	    
     	}
     });
@@ -599,7 +801,7 @@ function getEventSVG(eventID) {
  * uses verovio to render the MEI into an svg and
  * places that svg in the HTML element with the target ID
  */
-function renderMEI(mei, target) {
+function renderMEI(mei, targets) {
     
     //options for Verovio
     var options = JSON.stringify({
@@ -609,36 +811,71 @@ function renderMEI(mei, target) {
       	ignoreLayout: 0,
       	noLayout: 1          //results in a continuous system without page breaks
     });
-      
-	vrvToolkit.setOptions( options );
+    
+    vrvToolkit.setOptions( options );
+	
 	//feels like a bug in Verovio: you need to add a line break after the MEI file…
 	vrvToolkit.loadData(mei + '\n');
     
     //lets Verovio render the first page. since we have a continous system, this is everything
     var svg = vrvToolkit.renderPage(1);
     
-    //appends the resulting svg to the HTML target element
-    $(target).html(svg);
     
-    //iterates over all suppliedIDs (available from global meiFile)
-    $.each(meiFile.suppliedIDs,function(i,suppliedID) {
-        //every found suppliedID in the Verovio SVG gets painted
-        $('*[id=' +suppliedID+']').css('fill',suppliedColor).css('stroke',suppliedColor);
+    $.each(targets,function(index,target) {
+        //appends the resulting svg to the HTML target element
+        $(target).html(svg);
+    
+        //iterates over all suppliedIDs (available from global meiFile)
+        $.each(meiFile.suppliedIDs,function(i,suppliedID) {
+            //every found suppliedID in the Verovio SVG gets painted
+            $('*[id=' +suppliedID+']').css('fill',suppliedColor).css('stroke',suppliedColor);
+        });
+        
+        //iterates over all suppliedAccids (available from global meiFile)
+        $.each(meiFile.suppliedAccids,function(i,suppliedAccid) {
+            //every found supplied accidental in the Verovio SVG gets painted
+            $('*[id=' +suppliedAccid+'] .accid').css('fill',suppliedColor).css('stroke',suppliedColor);
+        });
+        
+        //attach onclick listener to notes and rests to trigger getEventSVG
+        //todo: should we add clefs and other elements? attention: clefs may be supplied, so no ID in the svg available. Would it break nicely?
+        $(target + ' svg .note, '+ target + ' svg .rest').on('click', function(e) {
+            var elem = e.currentTarget;
+            //$('#status').html(elem.id);
+            getEventSVG(elem.id);
+        });
     });
     
-    //iterates over all suppliedAccids (available from global meiFile)
-    $.each(meiFile.suppliedAccids,function(i,suppliedAccid) {
-        //every found supplied accidental in the Verovio SVG gets painted
-        $('*[id=' +suppliedAccid+'] .accid').css('fill',suppliedColor).css('stroke',suppliedColor);
-    });
+};
+
+/*
+ * function adjustOverlay()
+ * depending on currentState (the xml:id of the state) and currentPerspective,
+ * this function colors svg overlays. 
+ */
+function adjustOverlay() {
     
-    //attach onclick listener to notes and rests to trigger getEventSVG
-    //todo: should we add clefs and other elements? attention: clefs may be supplied, so no ID in the svg available. Would it break nicely?
-    $(target + ' svg .note, '+ target + ' svg .rest').on('click', function(e) {
-        var elem = e.currentTarget;
-        //$('#status').html(elem.id);
-        getEventSVG(elem.id);
-    });
+    try {
+        if(currentPerspective === 'plain') {
+            $('.leaflet-overlay-pane svg.overlay path').attr('fill',highlightColor);
+            
+        } else if(currentPerspective === 'layers') {
+            $.each(overlayInfo.layers, function(index,object) {
+                $.each(object.svgIDs, function(i,id) {
+                    $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
+                });
+            });
+            
+        } else if(currentPerspective === 'invariance') {
+            $.each(overlayInfo.invariance, function(index,object) {
+                $.each(object.svgIDs, function(i,id) {
+                    $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
+                });
+            });
+        }    
+    } catch(e) {
+        console.log('adjustOverlay failed');
+    }
     
 };
 
@@ -822,6 +1059,58 @@ $('#viewTabs li').on('click', function(e) {
         hideViews();
     }
     
+});
+
+function triggerSwitchPerspective(perspective) {
+      if(perspective === currentPerspective)
+        return;
+    
+    if(['plain','layers','invariance'].indexOf(perspective) === -1) {
+        console.log('"' + perspective + '" is not an allowed value for perspective (function triggerSwitchPerspective)');
+        return;
+    }
+    
+    $('#perspectiveForm input[value=' + perspective + ']').prop('checked',true);
+    
+};
+
+function switchPerspective(perspective) {
+    if(perspective === currentPerspective)
+        return;
+    
+    if(['plain','layers','invariance'].indexOf(perspective) === -1) {
+        console.log('"' + perspective + '" is not an allowed value for perspective (function switchPerspective)');
+        return;
+    }
+    
+    currentPerspective = perspective;
+    
+    $('.perspectiveBox').hide();
+    $('.perspectiveBox.' + perspective).show();
+    
+    adjustOverlay();
+    
+};
+
+/*
+ * adds functionality to switch between different transcription perspectives
+ */
+$('#perspectiveTabs li').on('click', function(e) {
+    
+    //get previously active tab
+    var old = $('#perspectiveTabs li.active')[0];
+    $(old).toggleClass('active');
+    //get ID of previous tab
+    var oldViewID = $(old).attr('data-target');
+    
+    //get new tab
+    var next = e.currentTarget;
+    $(next).toggleClass('active');
+    //get ID of view to be openend
+    var nextViewID = $(next).attr('data-target');
+    
+    $(oldViewID).hide();
+    $(nextViewID).show();
 });
 
 
@@ -1072,6 +1361,8 @@ function localize(elem) {
         var key = $(elem).attr('data-i18n-title');
         $(elem).attr('title',langFile[key]);    
     }
+    
+    /*return elem;*/
 };
 
 /*

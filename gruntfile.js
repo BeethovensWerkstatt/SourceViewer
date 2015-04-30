@@ -251,7 +251,7 @@ module.exports = function (grunt) {
                 // puts app.js at the end.
                 src: [
                     'bower_components/jquery/dist/jquery.min.js',
-                    'bower_components/verovio/index.js',
+                    'bower_components/verovio/verovio-toolkit.js',
                     'resources/js/app.min.js'],
                 // the location of the resulting JS file
                 dest: 'dist/resources/js/app.min.js'

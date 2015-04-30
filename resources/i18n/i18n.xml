@@ -37,16 +37,40 @@
         <value xml:lang="en">Description</value>
     </key>
     <key xml:id="tabVariants">
+        <value xml:lang="de">Transkriptionen</value>
+        <value xml:lang="en">Transcriptions</value>
+    </key>
+    <key xml:id="tabPlainPerspective">
         <value xml:lang="de">Variantenabfolge</value>
-        <value xml:lang="en">Variants</value>
+        <value xml:lang="en">Sequence of Variants</value>
+    </key>
+    <key xml:id="tabLayersPerspective">
+        <value xml:lang="de">Textschichten</value>
+        <value xml:lang="en">Textual Layers</value>
+    </key>
+    <key xml:id="tabInvariancePerspective">
+        <value xml:lang="de">Invarianz</value>
+        <value xml:lang="en">Textual Genesis</value>
+    </key>
+    <key xml:id="stateDescHeading">
+        <value xml:lang="de">Beschreibung</value>
+        <value xml:lang="en">Description</value>
+    </key>
+    <key xml:id="highlightInFacsimile">
+        <value xml:lang="de">Im Faksimile hervorheben</value>
+        <value xml:lang="en">highlight in facsimile</value>
+    </key>
+    <key xml:id="perspectiveSwitch">
+        <value xml:lang="de">Einfärbungsmodus</value>
+        <value xml:lang="en">Coloring Mode</value>
     </key>
     <key xml:id="aboutText">
         <value xml:lang="de">Diese Demoversion wurde von den Mitarbeitern des Projekts Beethovens Werkstatt entwickelt. Sie beinhaltet Codierungen der Beethovenschen Manuskripte, denen das XML-basierte Datenformat MEI zugrunde liegt. Diese werden mithilfe von skalierbaren Vektorgrafiken (SVGs) mit den hochauflösenden Faksimiles des Beethoven-Hauses Bonn verknüpft. Die Darstellung der Notentexte erfolgt mit Verovio, welches MEI-Daten in gewohnte Notenschrift konvertiert. Der vorliegende Prototyp ist weder methodisch noch technisch ausgereift und ist lediglich als Ausgangspunkt der weiteren Arbeiten des Projekts zu verstehen.</value>
         <value xml:lang="en">This demo was developed by the Beethovens Werkstatt team. It is build on encodings of Beethoven's manuscripts with MEI, combined with Scalable Vector Graphics (SVG) and the high-resolution digitizations of the Beethoven-Haus in Bonn, Germany. Musical texts are rendered with Verovio, which natively supports MEI. This prototype is just a proof of concept and may not be misunderstood as a final product – neither with regard to the concepts and methods nor from a technical perspective. </value>
     </key>
     <key xml:id="versionString">
-        <value xml:lang="de">Version 0.4.1 (2015-03-17) | © 2015 Beethovens Werkstatt</value>
-        <value xml:lang="en">Version 0.4.1 (2015-03-17) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="de">Version 0.5.1 (2015-04-21) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="en">Version 0.5.1 (2015-04-21) | © 2015 Beethovens Werkstatt</value>
     </key>
     <key xml:id="loadingStartup">
         <value xml:lang="de">Anwendung wird geladen</value>

@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mei="http://www.music-encoding.org/ns/mei" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" exclude-result-prefixes="xs xd" version="2.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mei="http://www.music-encoding.org/ns/mei" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" exclude-result-prefixes="xs xd" version="3.0">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>
@@ -32,16 +32,14 @@
     <xsl:variable name="state.open" select="'#bwTerm_openVariant' = tokenize($state/@decls,' ')" as="xs:boolean"/>
     
     <!-- get the xml:id of the measure following the last measure of this state -->
-    <xsl:variable name="nextMeasureID">
+    <xsl:variable name="nextMeasureID" as="xs:string">
         <xsl:choose>
             <!-- if the state under consideration is the first state in the document -->
             <xsl:when test="count($states.preceding) = 0">
                 
-                <!-- TODO: what if state 1 and 2 differ only by events that have been _added_ to state 2, but nothing has been deleted between 1 and 2? -->
-                
                 <xsl:variable name="nextStateID" select="$states.following[1]" as="xs:string"/>
                 <!-- out of all deletions happening between state 1 and 2, take the last deletion in file order -->
-                <xsl:variable name="lastModification" select="(//mei:subst[substring(@changeState,2) = $nextStateID]/mei:del | //mei:del[substring(@changeState,2) = $nextStateID])[last()]"/>
+                <xsl:variable name="lastModification" select="(//mei:*[substring(@changeState,2) = $nextStateID])[last()]"/>
                 <!-- from this last deletion that refers to state 2, take the following measure's xml:id as value for $nextMeasureID -->
                 <xsl:value-of select="$lastModification/following::mei:measure[1]/@xml:id"/>
             </xsl:when>
@@ -55,6 +53,28 @@
         </xsl:choose>
     </xsl:variable>
     
+    <!-- get the xml:id of the first measure of this state -->
+    <xsl:variable name="firstMeasureID" as="xs:string">
+        <xsl:choose>
+            <!-- if the state under consideration is the first state in the document -->
+            <xsl:when test="count($states.preceding) = 0">
+                
+                <xsl:variable name="nextStateID" select="$states.following[1]" as="xs:string"/>
+                <!-- out of all deletions happening between state 1 and 2, take the last deletion in file order -->
+                <xsl:variable name="firstModification" select="(//mei:*[substring(@changeState,2) = $nextStateID])[1]"/>
+                <!-- from this last deletion that refers to state 2, take the following measure's xml:id as value for $nextMeasureID -->
+                <xsl:value-of select="if($firstModification/ancestor::mei:measure) then($firstModification/ancestor::mei:measure[1]/@xml:id) else($firstModification/descendant::mei:measure[1]/@xml:id)"/>
+            </xsl:when>
+            <!-- if the considered state is not the first one -->
+            <xsl:otherwise>
+                <!-- from all references to modifications occuring at a given state, take the last one in file order -->
+                <xsl:variable name="firstModification" select="(//mei:*[substring(@changeState,2) = $state.id])[1]"/>
+                <!-- from this last modification, take the follwing measure's xml:id as value for $nextMeasureID -->
+                <xsl:value-of select="if($firstModification/ancestor::mei:measure) then($firstModification/ancestor::mei:measure[1]/@xml:id) else($firstModification/descendant::mei:measure[1]/@xml:id)"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    
     <!-- start the transformation -->
     <xsl:template match="/">
         <xsl:apply-templates/>
@@ -63,30 +83,61 @@
     <!-- decide how to deal with modifications to the source in order to re-establish the sought state -->
     <xsl:template match="mei:*[@changeState]">
         <xsl:choose>
-            <!-- in case of an <mei:subst> that happened in an earlier state, go with the material added -->
-            <xsl:when test="substring(@changeState,2) = $states.preceding and local-name() = 'subst'">
-                <xsl:apply-templates select="mei:add/mei:* | mei:restore/mei:*"/>
+            <!-- action happened in an earlier state -->
+            <xsl:when test="substring(@changeState,2) = $states.preceding">
+                <xsl:choose>
+                    <!-- deletions require to check if they are restored -->
+                    <xsl:when test="local-name() = 'del'">
+                        <xsl:choose>
+                            <!-- if the whole deletion is restored in a subsequent state, keep content -->
+                            <xsl:when test="parent::mei:restore">
+                                <xsl:apply-templates select="child::mei:*"/>        
+                            </xsl:when>
+                            <!-- otherwise drop content-->
+                            <xsl:otherwise/>
+                        </xsl:choose>      
+                    </xsl:when>
+                    <!-- additions / restoration from an earlier state are kept -->
+                    <xsl:when test="local-name() = ('add','restore')">
+                        <xsl:apply-templates select="child::mei:*"/>
+                    </xsl:when>
+                </xsl:choose>
             </xsl:when>
-            <!-- in case of an <mei:add> or <mei:restore> that happened in an earlier state, go with the added / restored material -->
-            <xsl:when test="substring(@changeState,2) = $states.preceding and local-name() = ('add','restore')">
-                <xsl:apply-templates select="mei:*"/>
+            <!-- action happens in the current state -->
+            <xsl:when test="substring(@changeState,2) = $state.id">
+                <xsl:choose>
+                    <!-- content deleted in current state -> no restoration possible -> drop content -->
+                    <xsl:when test="local-name() = 'del'"/>
+                    <!-- content added / restored in current state is kept -->
+                    <xsl:when test="local-name() = ('add','restore')">
+                        <xsl:apply-templates select="child::mei:*"/>
+                    </xsl:when>
+                </xsl:choose>
             </xsl:when>
-            <!-- in case of an <mei:subst> taking place in the desired state, go with the material added  -->
-            <xsl:when test="substring(@changeState,2) = $state.id and local-name() = 'subst'">
-                <xsl:apply-templates select="mei:add/mei:* | mei:restore/mei:*"/>
+            <!-- actions happening in the future -->
+            <xsl:when test="substring(@changeState,2) = $states.following">
+                <xsl:choose>
+                    <!-- content will be deleted later, so keep it here -->
+                    <xsl:when test="local-name() = 'del'">
+                        <xsl:apply-templates select="child::mei:*"/>  
+                    </xsl:when>
+                    <!-- content will be added later, so it's not available yet -->
+                    <xsl:when test="local-name() = 'add'"/>
+                    <!-- if content is restored later, check if it's deleted after this event -->
+                    <xsl:when test="local-name() = 'restore'">
+                        <xsl:choose>
+                            <xsl:when test="child::mei:del and child::mei:del/substring(@changeState,2) = $states.following">
+                                <xsl:apply-templates select="child::mei:*"/>
+                            </xsl:when>
+                            <xsl:otherwise/>
+                        </xsl:choose>
+                    </xsl:when>
+                </xsl:choose>
+                    
             </xsl:when>
-            <!-- in case of an <mei:add> or <mei:restore> taking place in the desired state, go with its contents -->
-            <xsl:when test="substring(@changeState,2) = $state.id and local-name() = ('add','restore')">
-                <xsl:apply-templates select="mei:*"/>
-            </xsl:when>
-            <!-- in case of an <mei:subst> that happens in a later state, preserve the material to be deleted in that substitution -->
-            <xsl:when test="substring(@changeState,2) = $states.following and local-name() = 'subst'">
-                <xsl:apply-templates select="mei:del/mei:*"/>
-            </xsl:when>
-            <!-- in case of an <mei:del> that happens  in a later state, keep the deleted material -->
-            <xsl:when test="substring(@changeState,2) = $states.following and local-name() = ('del')">
-                <xsl:apply-templates select="mei:*"/>
-            </xsl:when>
+            
+            
+            
             <!-- otherwise should really not be triggered… -->
             <xsl:otherwise>
                 Nothing happened
@@ -100,9 +151,9 @@
     </xsl:template>
     
     <!-- when stumbling about something with an @sameas reference, switch to the referenced element and continue transformation there -->
-    <xsl:template match="mei:*[@sameas]">
+    <!--<xsl:template match="mei:*[@sameas]">
         <xsl:apply-templates select="id(substring(@sameas,2))"/>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- ignore bTrem and unclear elements and continue transformation with their respective children -->
     <xsl:template match="mei:bTrem | mei:unclear">
@@ -128,38 +179,62 @@
     
     <!-- decide how to deal with measures -->
     <xsl:template match="mei:measure">
+        <!-- when the current measure is not affected by any modifications, skip it -->
         <xsl:choose>
-            <!-- todo: why is this? -->
-            <!--xsl:when test="$state.open">-->
-            <xsl:when test="1 = 1">
-                <xsl:choose>
-                    <!-- when the current measure is the first one after the last modification of an open variant, it should not be considered -->
-                    <xsl:when test="@xml:id = $nextMeasureID"/>
-                    <!-- when the current measure appears somewhere after the first measure following the last modification, it should be stripped as well -->
-                    <xsl:when test="preceding::mei:measure/@xml:id = $nextMeasureID"/>
-                    <!-- when the current measure doesn't appear *after* the last modification, it belongs to the intended state and should be considered -->
-                    <xsl:otherwise>
-                        <xsl:next-match/>
-                    </xsl:otherwise>
-                </xsl:choose>
+            <!-- when the current measure is the first one after the last modification of an open variant, it should not be considered -->
+            <xsl:when test="@xml:id = $nextMeasureID">
+                <xsl:message select="concat(@label, ': this is too late')"/>
             </xsl:when>
-            <!-- in a closed variant, all measures should be considered -->
+            <!-- when the current measure appears somewhere after the first measure following the last modification, it should be stripped as well -->
+            <xsl:when test="preceding::mei:measure/@xml:id = $nextMeasureID">
+                <xsl:message select="concat(@label, ': this is too late')"/>
+            </xsl:when>
+            <!-- when the current measure appears somewhere before the first measure of this state, it should be stripped as well -->
+            <xsl:when test="following::mei:measure/@xml:id = $firstMeasureID">
+                <xsl:message select="concat(@label, ': this is too early')"/>
+            </xsl:when>
+            <!-- when the current measure doesn't appear *after* the last modification, it belongs to the intended state and should be considered -->
             <xsl:otherwise>
+                <xsl:message select="concat(@label, ': keep')"/>
                 <xsl:next-match/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
-    <!-- todo: remove this hard-coded bullshit -->
     <!-- this template inserts a (provided) clef that's missing because of the selection of measures -->
-    <xsl:template match="mei:layer[parent::mei:staff[@n = 2] and ancestor::mei:measure[@xml:id = 'edirom_measure_a0aee85e-cacf-4065-922a-ca2dc849aea5']]">
-        <xsl:copy>
-            <xsl:apply-templates select="@*"/>
-            <xsl:if test="count(child::mei:*) gt 0">
-                <clef xmlns="http://www.music-encoding.org/ns/mei" line="2" shape="G"/>
-            </xsl:if>
-            <xsl:apply-templates select="node()"/>
-        </xsl:copy>
+    <xsl:template match="mei:layer">
+        <xsl:choose>
+            <!-- this addition should only happen in the first measure shown -->
+            <xsl:when test="not(ancestor::mei:measure/@xml:id = $firstMeasureID)">
+                <xsl:next-match/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="staff.n" select="parent::mei:staff/@n" as="xs:string"/>
+                <xsl:variable name="initial.staffDef" select="//mei:scoreDef[1]//mei:staffDef[@n = $staff.n]" as="node()"/>
+                <xsl:variable name="clefChanges" select="preceding::mei:*[(local-name() = 'clef' and ancestor::mei:staff[@n = $staff.n]) or (local-name() = 'staffDef' and @n = $staff.n and @clef.line and @clef.shape)]" as="node()*"/>
+                <xsl:variable name="clefChange" select="if(count($clefChanges) gt 1) then($clefChanges[1]) else()" as="node()?"/>
+                
+                <xsl:copy>
+                    <xsl:apply-templates select="@*"/>
+                    <xsl:choose>
+                        <!-- when there is an earlier clef element, copy it here -->
+                        <xsl:when test="exists($clefChange) and local-name($clefChange) = 'clef'">
+                            <xsl:copy-of select="$clefChange"/>
+                        </xsl:when>
+                        <!-- when there is a clef changed by using a staffDef, add a clef element here -->
+                        <xsl:when test="exists($clefChange) and local-name($clefChange) = 'staffDef'">
+                            <clef xmlns="http://www.music-encoding.org/ns/mei" line="{$clefChange/@clef.line}" shape="{$clefChange/@clef.shape}"/>
+                        </xsl:when>
+                        <xsl:otherwise/>
+                    </xsl:choose>
+                    
+                    <xsl:apply-templates select="node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+        
+        
+        
     </xsl:template>
     
     <!--

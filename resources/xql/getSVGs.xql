@@ -42,9 +42,9 @@ declare function local:strip-namespace($e as element()) as element() {
     take an SVG document and run in through makeTransparent.xsl. This basically sets everything to
     an opacity of 0 (= transparent), but leaves all paths in place for interaction. 
 :)
-declare function local:addTransparency($fullSvg,$xslPath) as element() {
+declare function local:addTransparency($fullSvg,$xslPath,$highlightColor) as element() {
     let $output := transform:transform($fullSvg,
-        doc(concat($xslPath,'makeTransparent.xsl')), <parameters/>) 
+        doc(concat($xslPath,'makeTransparent.xsl')), <parameters><param name="highlightColor" value="{$highlightColor}"/></parameters>) 
     return
         $output
 };
@@ -87,6 +87,7 @@ declare function local:getStateSVG($doc,$fullSVG,$state, $xslPath, $colors, $i) 
 
 let $source.id := request:get-parameter('sourceID','')
 let $page.id := request:get-parameter('pageID','')
+let $highlightColor := request:get-parameter('highlightColor','')
 let $colorString := request:get-parameter('colors','')
 
 (:
@@ -108,7 +109,7 @@ let $fullSvg := local:strip-namespace($doc/id($page.id)/svg:svg[1])
 (:
     prepare an SVG with all paths on the current page, to be used for interaction (highlighting of events, clicking etc.)
 :)
-let $backgroundSvg := local:addTransparency($fullSvg,$xslPath)
+let $backgroundSvg := local:addTransparency($fullSvg,$xslPath,$highlightColor)
 
 (:
     get the states available in the MEI file
@@ -122,9 +123,12 @@ let $svgs := for $state at $i in $states
              return
                 local:getStateSVG($doc,$fullSvg,$state, $xslPath, $colors, $i)
 
+
+
 (:
-    return a custom element 'container', which holds the $backgroundSVG to be used for interaction, and
-    individual SVGs for each state of that source
+    return a custom element 'container', which holds the $backgroundSVG to be used for interaction, 
+    todo: a $curtainSvg, which just gives the shape of the page and can be used to 
+    and individual SVGs for each state of that source
 :)
 return
     <container>
