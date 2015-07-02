@@ -45,17 +45,20 @@
         </xsl:choose>
     </xsl:function>
     
+    <!-- get localized string with no additional parameters -->
     <xsl:function name="local:getLocal" as="xs:string">
         <xsl:param name="key" as="xs:string" required="yes"/>
         <xsl:value-of select="local:getLocal($key,'','','','')"/>
     </xsl:function>
     
+    <!-- get localized string with one additional parameter -->
     <xsl:function name="local:getLocal" as="xs:string">
         <xsl:param name="key" as="xs:string" required="yes"/>
         <xsl:param name="param1" as="xs:string" required="no"/>
         <xsl:value-of select="local:getLocal($key,$param1,'','','')"/>
     </xsl:function>
     
+    <!-- get localized string with two additional parameters -->
     <xsl:function name="local:getLocal" as="xs:string">
         <xsl:param name="key" as="xs:string" required="yes"/>
         <xsl:param name="param1" as="xs:string" required="no"/>
@@ -63,6 +66,7 @@
         <xsl:value-of select="local:getLocal($key,$param1,$param2,'','')"/>
     </xsl:function>
     
+    <!-- get localized string with three additional parameters -->
     <xsl:function name="local:getLocal" as="xs:string">
         <xsl:param name="key" as="xs:string" required="yes"/>
         <xsl:param name="param1" as="xs:string" required="no"/>
@@ -71,6 +75,7 @@
         <xsl:value-of select="local:getLocal($key,$param1,$param2,$param3,'')"/>
     </xsl:function>
     
+    <!-- get localized string with four additional parameters -->
     <xsl:function name="local:getLocal" as="xs:string">
         <xsl:param name="key" as="xs:string" required="yes"/>
         <xsl:param name="param1" as="xs:string" required="no"/>
@@ -126,52 +131,86 @@
     <xsl:function name="local:getStateDesc" as="xs:string">
         <xsl:param name="elem" as="node()" required="yes"/>
         
-        <!-- get all ancestor elements describing modifications to the source -->
-        <xsl:variable name="changeStateElems" select="$elem/ancestor::mei:*[local-name() = ('del','add','restore')]" as="node()*"/>
+        <!-- get all modifying operations for this element -->
+        <xsl:variable name="modifications" select="reverse($elem/ancestor::mei:*[@changeState])" as="node()*"/>
         
-        <!-- get the closest addition and deletion. since newer modifications always wrap the existing material, the inner-most
-            modification is the right one to identify in which state something was added or deleted -->
-        <xsl:variable name="added" select="$elem/ancestor::mei:add[1]" as="node()?"/>
-        <xsl:variable name="deleted" select="$elem/ancestor::mei:del[1]" as="node()?"/>
+        <!-- decide if elem is inside the "Störstelle" -->
+        <xsl:variable name="is.contained" select="$elem/ancestor::mei:measure/@xml:id = $elem/ancestor::mei:mei//mei:genDesc[@ordered = 'true' and @plist]/tokenize(replace(@plist,'#',''),' ')" as="xs:boolean"/>
         
-        <!-- generate a string when the element was added -->
-        <xsl:variable name="addedString" as="xs:string">
+        <xsl:variable name="strings" as="xs:string*">
             <xsl:choose>
-                <!-- if there is an ancestor <mei:add> -->
-                <xsl:when test="$added">
-                    <!-- get the state, which may be provided on a parent::mei:subst instead of the mei:add itself -->
-                    <xsl:variable name="addedState" select="if($added/@changeState) then($added/@changeState) else($added/parent::mei:subst/@changeState)" as="xs:string"/>
-                    <xsl:variable name="addedStateLabel" select="$added/root()/id(replace($addedState,'#',''))/@label" as="xs:string"/>
-                    <xsl:value-of select="concat(local:getLocal('addedIn'),' ', $addedStateLabel)"/>
+                <!-- when element is not contained in the Störstelle, don't include this information at all -->
+                <xsl:when test="not($is.contained)">
+                    <xsl:value-of select="''"/>
+                </xsl:when>
+                <!-- element has never been added or deleted -> part of the first layer, never changed -->
+                <xsl:when test="count($modifications) = 0">
+                    <xsl:value-of select="local:getLocal('element.neverModified')"/>
                 </xsl:when>
                 
-                <!-- when there is no ancestor <mei:add>, the element must have been part of the very first state already -->
+                <!-- todo: erst ab mei:add auswerten… -->
+                
+                <!-- element modified -->
                 <xsl:otherwise>
-                    <xsl:value-of select="$elem/root()//mei:genDesc[@ordered = 'true']/mei:state[1]/@label"/>
+                    <xsl:if test="not($modifications[local-name() = 'add'])">
+                        <xsl:value-of select="local:getLocal('alreadyInBaseLayer',$doc//mei:genDesc[@ordered = 'true' and @plist]/mei:state[1]/@label)"/>
+                    </xsl:if>
+                    
+                    <xsl:variable name="involved.states" select="$doc//mei:state[concat('#',@xml:id) = $modifications/@changeState]" as="node()*"/>
+                    <xsl:for-each select="$involved.states">
+                        <xsl:variable name="current.state" select="." as="node()"/>
+                        
+                        <xsl:variable name="current.modifications" select="$modifications[@changeState = concat('#',$current.state/@xml:id)]" as="node()+"/>
+                        
+                        <xsl:choose>
+                            <xsl:when test="count($current.modifications) = 1">
+                                <xsl:value-of select="local:describeModification($current.modifications)"/>
+                            </xsl:when>
+                            <xsl:when test="exists($current.modifications[local-name() = 'del']) and exists($current.modifications[local-name() = 'restore'])">
+                                <xsl:variable name="combined.mod" as="node()">
+                                    <restoreDel changeState="#{$current.state/@xml:id}"/>
+                                </xsl:variable>
+                                <xsl:value-of select="local:describeModification($combined.mod)"/>
+                            </xsl:when>
+                            <!-- todo: are there other combinations possible for sharing a state? -->
+                        </xsl:choose>
+                        
+                    </xsl:for-each>
+                                        
+                    <!--<xsl:for-each select="$modifications">
+                        <xsl:sort data-type="number" select="count(./preceding::mei:*[concat('#',@xml:id) = $modifications/@xml:id])"/>
+                        <xsl:value-of select="local:describeModification(.)"/>
+                    </xsl:for-each>-->
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
         
-        <!-- generate a string when the element was deleted -->
-        <xsl:variable name="deletedString" as="xs:string">
-            <xsl:choose>
-                <!-- if there is an ancestor <mei:del> -->
-                <xsl:when test="$deleted">
-                    <!-- get the state, which may be provided on a parent::mei:subst instead of the mei:del itself -->
-                    <xsl:variable name="deletedState" select="if($deleted/@changeState) then($deleted/@changeState) else($deleted/parent::mei:subst/@changeState)" as="xs:string"/>
-                    <xsl:variable name="deletedStateLabel" select="$deleted/root()/id(replace($deletedState,'#',''))/@label" as="xs:string"/>
-                    <xsl:value-of select="concat(local:getLocal('deletedIn'),' ', $deletedStateLabel)"/>
-                </xsl:when>
-                
-                <!-- when there is no ancestor <mei:del>, the element must still be part of the final state -->
-                <xsl:otherwise>
-                    <xsl:value-of select="concat(local:getLocal('inFinalVariant'),' ',$elem/root()//mei:genDesc[@ordered = 'true']/mei:state[last()]/@label)"/>
-                </xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
+        <xsl:value-of select="string-join($strings,', ')"/>
+    </xsl:function>
+    
+    <xsl:function name="local:describeModification" as="xs:string">
+        <xsl:param name="modification" as="node()"/>
         
-        <!-- join the information about addition and deletion and return it -->
-        <xsl:value-of select="string-join(($addedString,$deletedString),', ')"/>
+        <xsl:variable name="state" select="$doc/id(substring($modification/@changeState,2))" as="node()"/>
+        
+        <xsl:choose>
+            <xsl:when test="local-name($modification) = 'add'">
+                <xsl:value-of select="local:getLocal('addedIn',$state/@label)"/>
+            </xsl:when>
+            <xsl:when test="local-name($modification) = 'del'">
+                <xsl:value-of select="local:getLocal('deletedIn',$state/@label)"/>
+            </xsl:when>
+            <xsl:when test="local-name($modification) = 'restore'">
+                <xsl:value-of select="local:getLocal('restoredIn',$state/@label)"/>
+            </xsl:when>
+            <xsl:when test="local-name($modification) = 'restoreDel'">
+                <xsl:value-of select="local:getLocal('restoredAndDeleted',$state/@label)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="local:getLocal('modifiedIn',$state/@label,local-name($modification))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+        
     </xsl:function>
     
     <!-- this function generates a german pitch name -->
@@ -343,6 +382,66 @@
         <xsl:value-of select="concat($lowOct,$basePitch,$highOct)"/>
     </xsl:function>
     
+    <!-- this function generates a string saying in which measure a feature is contained. -->
+    <xsl:function name="local:getMeasure" as="xs:string">
+        <xsl:param name="elem" as="node()"/>
+        <xsl:variable name="staff.n" select="if($elem/@staff) then($elem/@staff) else($elem/ancestor::mei:staff/@n)" as="xs:string?"/>
+        
+        <xsl:variable name="staff.ref" as="xs:string?">
+            <xsl:choose>
+                <xsl:when test="not($staff.n)"/>
+                <xsl:when test="$doc//mei:staffDef[@n = $staff.n]/@label">
+                    <xsl:value-of select="concat(', ',$doc//mei:staffDef[@n = $staff.n]/@label)"/>
+                </xsl:when>
+                <xsl:when test="$doc//mei:staffDef[@n = $staff.n]/ancestor::mei:staffGrp/@label">
+                    <xsl:value-of select="concat(', ',$doc//mei:staffDef[@n = $staff.n]/ancestor::mei:staffGrp[@label][1]/@label)"/>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+        
+        <xsl:choose>
+            <xsl:when test="$elem/ancestor::mei:measure">
+                <xsl:value-of select="concat(local:getLocal('measure',$elem/ancestor::mei:measure/@label),$staff.ref)"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="''"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+    
+    <!-- this function gives a string that relates the element to the "Störstelle" -->
+    <!-- todo: this only works as long as there is only one "Störstelle"!! -->
+    <xsl:function name="local:qualifyPosition" as="xs:string">
+        <xsl:param name="elem" as="node()"/>
+        <xsl:choose>
+            <xsl:when test="not($elem/ancestor::mei:measure)">
+                <xsl:value-of select="''"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="measure" select="$elem/ancestor::mei:measure" as="node()"/>
+                <xsl:variable name="affected.measures" select="$doc//mei:genDesc[@ordered = 'true' and @plist]/tokenize(replace(@plist,'#',''),' ')"/>
+                <xsl:choose>
+                    <!-- elem is within the "Störstelle" -->
+                    <xsl:when test="$measure/@xml:id = $affected.measures">
+                        <xsl:value-of select="''"/>
+                    </xsl:when>
+                    <!-- elem precedes the "Störstelle" -->
+                    <xsl:when test="every $id in $affected.measures satisfies exists($doc//mei:measure[@xml:id = $id and preceding::mei:measure/@xml:id = $measure/@xml:id])">
+                        <xsl:value-of select="local:getLocal('precedes.störstelle')"/>
+                    </xsl:when>
+                    <!-- elem follows on the "Störstelle" -->
+                    <xsl:when test="every $id in $affected.measures satisfies exists($doc//mei:measure[@xml:id = $id and following::mei:measure/@xml:id = $measure/@xml:id])">
+                        <xsl:value-of select="local:getLocal('follows.störstelle')"/>
+                    </xsl:when>
+                    <!-- something seems wrong – this should be covered by case 1 -->
+                    <xsl:otherwise>
+                        <xsl:value-of select="''"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+    
     <!-- this function processes notes. It uses SMuFL code points for musical symbols,
         which may not show up here in a meaningful way. Refer to http://www.smufl.org/version/latest/
         for additional information.
@@ -385,7 +484,13 @@
         </xsl:variable>
         <xsl:variable name="pitch" select="concat(upper-case($note/@pname),$accid,$note/@oct, if($lang = 'de') then(concat(' | ',local:getGermanPitch($note/@oct,$note/@pname,$note//@accid))) else())" as="xs:string"/>
         <xsl:variable name="stateDesc" select="local:getStateDesc($note)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;note&#34;,',             '&#34;id&#34;:&#34;',$note/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;',$dur,$dotted,'&#34;,',             '&#34;desc&#34;:&#34;',$pitch,'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;note&#34;,',
+            '&#34;id&#34;:&#34;',$note/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($note),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($note),'&#34;,',
+            '&#34;bravura&#34;:&#34;',$dur,$dotted,'&#34;,',
+            '&#34;desc&#34;:&#34;',$pitch,'&#34;}')"/>
     </xsl:function>
     
     <!-- this function processes chords. For pitches, it calls local:processNote -->
@@ -416,14 +521,26 @@
             </xsl:for-each>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($chord)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;chord&#34;,',             '&#34;id&#34;:&#34;',$chord/@xml:id,'&#34;,',              '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;desc&#34;:&#34;',$dotted,' ',local:getLocal('chord'),' ',$dur,' ',string-join($pitches,', '),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;chord&#34;,',
+            '&#34;id&#34;:&#34;',$chord/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',            
+            '&#34;measure&#34;:&#34;',local:getMeasure($chord),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($chord),'&#34;,',
+            '&#34;desc&#34;:&#34;',$dotted,' ',local:getLocal('chord'),' ',$dur,' ',string-join($pitches,', '),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function more or less only says it's a beam… -->
     <xsl:function name="local:processBeam" as="xs:string">
         <xsl:param name="beam" required="yes" as="node()"/>
         <xsl:variable name="stateDesc" select="local:getStateDesc($beam)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;beam&#34;,',             '&#34;id&#34;:&#34;',$beam/@xml:id,'&#34;,',              '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('beam'),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;beam&#34;,',
+            '&#34;id&#34;:&#34;',$beam/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',            
+            '&#34;measure&#34;:&#34;',local:getMeasure($beam),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($beam),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('beam'),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function more or less only says it's a deletion… -->
@@ -431,7 +548,13 @@
         <xsl:param name="del" required="yes" as="node()"/>
         <xsl:variable name="changeState" select="if($del/@changeState) then($del/@changeState) else($del/parent::mei:subst/@changeState)" as="xs:string"/>
         <xsl:variable name="stateLabel" select="$del/root()/id(replace($changeState,'#',''))/@label" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;del&#34;,',              '&#34;id&#34;:&#34;',$del/@xml:id,'&#34;,',              '&#34;stateDesc&#34;:&#34;&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('deletionIn'),' ',$stateLabel,'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;del&#34;,',
+            '&#34;id&#34;:&#34;',$del/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',            
+            '&#34;measure&#34;:&#34;',local:getMeasure($del),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($del),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('deletionIn'),' ',$stateLabel,'&#34;}')"/>
     </xsl:function>
     
     <!-- this function processes accidentals. It uses SMuFL code points for musical symbols,
@@ -450,7 +573,13 @@
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($accid)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;accid&#34;,',             '&#34;id&#34;:&#34;',$accid/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('accidental'),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;accid&#34;,',
+            '&#34;id&#34;:&#34;',$accid/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($accid),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($accid),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('accidental'),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function processes rests. It uses SMuFL code points for musical symbols,
@@ -478,7 +607,13 @@
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($rest)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;rest&#34;,',             '&#34;id&#34;:&#34;',$rest/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;',$dur,$dotted,'&#34;,',             '&#34;desc&#34;:&#34;&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;rest&#34;,',
+            '&#34;id&#34;:&#34;',$rest/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;',$dur,$dotted,'&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($rest),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($rest),'&#34;,',
+            '&#34;desc&#34;:&#34;&#34;}')"/>
     </xsl:function>
     
     <!-- this function processes clefs. It uses SMuFL code points for musical symbols,
@@ -494,14 +629,26 @@
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($clef)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;clef&#34;,',             '&#34;id&#34;:&#34;',$clef/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',             '&#34;desc&#34;:&#34;',$clef/@shape,local:getLocal('clef.combined'),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;clef&#34;,',
+            '&#34;id&#34;:&#34;',$clef/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($clef),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($clef),'&#34;,',
+            '&#34;desc&#34;:&#34;',$clef/@shape,local:getLocal('clef.combined'),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function more or less only gets the text content of a directive… -->
     <xsl:function name="local:processDir" as="xs:string">
         <xsl:param name="dir" required="yes" as="node()"/>
         <xsl:variable name="stateDesc" select="local:getStateDesc($dir)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;dir&#34;,',             '&#34;id&#34;:&#34;',$dir/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('directive'),' ',string-join($dir//text(),' '),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;dir&#34;,',
+            '&#34;id&#34;:&#34;',$dir/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($dir),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($dir),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('directive'),' ',string-join($dir//text(),' '),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function processes octave statements. It uses SMuFL code points for musical symbols,
@@ -521,7 +668,13 @@
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($octave)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;octave&#34;,',             '&#34;id&#34;:&#34;',$octave/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('octave.dir'),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;octave&#34;,',
+            '&#34;id&#34;:&#34;',$octave/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,', 
+            '&#34;bravura&#34;:&#34;',$bravura,'&#34;,',   
+            '&#34;measure&#34;:&#34;',local:getMeasure($octave),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($octave),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('octave.dir'),'&#34;}')"/>
     </xsl:function>
     
     <!-- this function describes the range of a slur… -->
@@ -545,17 +698,87 @@
             '&#34;id&#34;:&#34;',$slur/@xml:id,'&#34;,',
             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
             '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($slur),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($slur),'&#34;,',
             '&#34;desc&#34;:&#34;',local:getLocal('slur'),' ',local:getLocal('startingAtTstamp',$slur/@tstamp),' ',$endLabel,'&#34;}')"/>
+    </xsl:function>
+    
+    <!-- this function describes the range of a tie… -->
+    <xsl:function name="local:processTie" as="xs:string">
+        <xsl:param name="tie" required="yes" as="node()"/>
+        <xsl:variable name="stateDesc" select="local:getStateDesc($tie)" as="xs:string"/>
+        <xsl:variable name="endLabel" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="starts-with($tie/@tstamp2,'0m')">
+                    <xsl:value-of select="concat(' ', local:getLocal('endingAtTstamp',substring-after($tie/@tstamp2,'0m+')))"/>
+                </xsl:when>
+                <xsl:when test="starts-with($tie/@tstamp2,'1m')">
+                    <xsl:value-of select="concat(' ', local:getLocal('endingAtTstampOfNextMeasure',substring-after($tie/@tstamp2,'1m+')))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat(' ',local:getLocal('endingAtTstampOfNextMeasure',local:getOrdinal(substring-before($tie/@tstamp2,'m+')),substring-after($tie/@tstamp2,'1m+')))"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;tie&#34;,',
+            '&#34;id&#34;:&#34;',$tie/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($tie),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($tie),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('tie'),' ',local:getLocal('startingAtTstamp',$tie/@tstamp),' ',$endLabel,'&#34;}')"/>
     </xsl:function>
     
     <!-- this function more or less only gets the text content of the dynam… -->
     <xsl:function name="local:processDynam" as="xs:string">
         <xsl:param name="dynam" required="yes" as="node()"/>
         <xsl:variable name="stateDesc" select="local:getStateDesc($dynam)" as="xs:string"/>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;dynam&#34;,',             '&#34;id&#34;:&#34;',$dynam/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;desc&#34;:&#34;',local:getLocal('dynamic.dir'),' ',string-join($dynam//text(),' '),'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;dynam&#34;,',
+            '&#34;id&#34;:&#34;',$dynam/@xml:id,'&#34;,',     
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',     
+            '&#34;bravura&#34;:&#34;&#34;,',        
+            '&#34;measure&#34;:&#34;',local:getMeasure($dynam),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($dynam),'&#34;,',
+            '&#34;desc&#34;:&#34;',local:getLocal('dynamic.dir'),' ',string-join($dynam//text(),' '),'&#34;}')"/>
     </xsl:function>
     
-    <!-- this function more or less only gets the text content of the dynam… -->
+    <!-- this function describes a hairpin -->
+    <xsl:function name="local:processHairpin" as="xs:string">
+        <xsl:param name="hairpin" required="yes" as="node()"/>
+        <xsl:variable name="stateDesc" select="local:getStateDesc($hairpin)" as="xs:string"/>
+        <xsl:variable name="desc" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="$hairpin/@form = 'dim'">
+                    <xsl:value-of select="local:getLocal('hairpin.dim')"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="local:getLocal('hairpin.cres')"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="endLabel" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="starts-with($hairpin/@tstamp2,'0m')">
+                    <xsl:value-of select="concat(' ', local:getLocal('endingAtTstamp',substring-after($hairpin/@tstamp2,'0m+')))"/>
+                </xsl:when>
+                <xsl:when test="starts-with($hairpin/@tstamp2,'1m')">
+                    <xsl:value-of select="concat(' ', local:getLocal('endingAtTstampOfNextMeasure',substring-after($hairpin/@tstamp2,'1m+')))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="concat(' ',local:getLocal('endingAtTstampOfNextMeasure',local:getOrdinal(substring-before($hairpin/@tstamp2,'m+')),substring-after($hairpin/@tstamp2,'1m+')))"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;hairpin&#34;,',
+            '&#34;id&#34;:&#34;',$hairpin/@xml:id,'&#34;,',     
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',     
+            '&#34;bravura&#34;:&#34;&#34;,',        
+            '&#34;measure&#34;:&#34;',local:getMeasure($hairpin),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($hairpin),'&#34;,',
+            '&#34;desc&#34;:&#34;',$desc,' ',local:getLocal('startingAtTstamp',$hairpin/@tstamp),' ',$endLabel,'&#34;}')"/>
+    </xsl:function>
+    
+    <!-- this function more or less only gets the text content of the artic… -->
     <xsl:function name="local:processArtic" as="xs:string">
         <xsl:param name="artic" required="yes" as="node()"/>
         <xsl:variable name="stateDesc" select="local:getStateDesc($artic)" as="xs:string"/>
@@ -569,6 +792,8 @@
             '&#34;id&#34;:&#34;',$artic/@xml:id,'&#34;,',
             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
             '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($artic),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($artic),'&#34;,',
             '&#34;desc&#34;:&#34;',$desc,'&#34;}')"/>
     </xsl:function>
     
@@ -597,7 +822,9 @@
                     </xsl:variable>
                     <xsl:value-of select="concat(local:getLocal('confirmation'),$typeString)"/>
                 </xsl:when>
-                <xsl:when test="$metaMark/@function = 'clarification'"><xsl:value-of select="local:getLocal('clarification')"/></xsl:when>
+                <xsl:when test="$metaMark/@function = 'clarification'">
+                    <xsl:value-of select="local:getLocal('clarification',string-join($metaMark//text(),' '))"/>
+                </xsl:when>
             </xsl:choose>
         </xsl:variable>
         <xsl:variable name="stateDesc" select="local:getStateDesc($metaMark)" as="xs:string"/>
@@ -615,20 +842,38 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        <xsl:value-of select="concat('{&#34;type&#34;:&#34;metaMark&#34;,',             '&#34;id&#34;:&#34;',$metaMark/@xml:id,'&#34;,',             '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',             '&#34;target&#34;:&#34;',$target,'&#34;,',             '&#34;desc&#34;:&#34;',$function,'&#34;}')"/>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;metaMark&#34;,', 
+            '&#34;id&#34;:&#34;',$metaMark/@xml:id,'&#34;,', 
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',    
+            '&#34;measure&#34;:&#34;',local:getMeasure($metaMark),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($metaMark),'&#34;,',
+            '&#34;target&#34;:&#34;',$target,'&#34;,',   
+            '&#34;desc&#34;:&#34;',$function,'&#34;}')"/>
     </xsl:function>
     
-    <!-- @id of the <svg:path> element in question -->
-    <xsl:param name="svg.id" required="yes"/>
+    <!-- @id of the element in question -->
+    <xsl:param name="elem.id" required="yes"/>
     
     <xsl:param name="lang" required="yes" as="xs:string"/>
     <xsl:variable name="langDoc" select="doc('/db/apps/SourceViewer/resources/i18n/i18n.xml')" as="node()"/>
+    <xsl:variable name="doc" select="/" as="node()"/>
     
     <!-- start processing -->
     <xsl:template match="/">
         
-        <!-- gets all MEI elements that reference this particular svg path -->
-        <xsl:variable name="elems" select="//mei:*[concat('#',$svg.id) = tokenize(@facs,' ')]" as="node()*"/>
+        <xsl:variable name="elems" as="node()*">
+            <xsl:choose>
+                <xsl:when test="//svg:path[@id = $elem.id]">
+                    <!-- gets all MEI elements that reference this particular svg path -->
+                    <xsl:sequence select="//mei:*[concat('#',$elem.id) = tokenize(@facs,' ')]"/>
+                </xsl:when>
+                <xsl:when test="//mei:*[@xml:id = $elem.id]">
+                    <!-- get the MEI element itself -->
+                    <xsl:sequence select="//mei:*[@xml:id = $elem.id]"/>
+                </xsl:when>
+            </xsl:choose>            
+        </xsl:variable>
         
         <!-- based on the local-name() of the MEI element, decide how to process it -->
         <xsl:variable name="strings" as="xs:string*">
@@ -636,6 +881,9 @@
                 <xsl:choose>
                     <xsl:when test="local-name(.) = 'metaMark'">
                         <xsl:value-of select="local:processMetaMark(.)"/>
+                    </xsl:when>
+                    <xsl:when test="local-name(.) = 'rend' and ancestor::mei:metaMark">
+                        <xsl:value-of select="local:processMetaMark(ancestor::mei:metaMark[1])"/>
                     </xsl:when>
                     <xsl:when test="local-name(.) = 'del'">
                         <xsl:value-of select="local:processDel(.)"/>
@@ -667,11 +915,17 @@
                     <xsl:when test="local-name(.) = 'slur'">
                         <xsl:value-of select="local:processSlur(.)"/>
                     </xsl:when>
+                    <xsl:when test="local-name(.) = 'tie'">
+                        <xsl:value-of select="local:processTie(.)"/>
+                    </xsl:when>
                     <xsl:when test="local-name(.) = 'beamSpan'">
                         <xsl:value-of select="local:processBeam(.)"/>
                     </xsl:when>
                     <xsl:when test="local-name(.) = 'dynam'">
                         <xsl:value-of select="local:processDynam(.)"/>
+                    </xsl:when>
+                    <xsl:when test="local-name(.) = 'hairpin'">
+                        <xsl:value-of select="local:processHairpin(.)"/>
                     </xsl:when>
                     <xsl:when test="local-name(.) = 'artic'">
                         <xsl:value-of select="local:processArtic(.)"/>

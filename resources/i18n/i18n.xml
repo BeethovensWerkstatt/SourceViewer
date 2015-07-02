@@ -12,6 +12,10 @@
         <value xml:lang="de">Seitenübersicht</value>
         <value xml:lang="en">Manuscript Pages</value>
     </key>
+    <key xml:id="buttonShowInFacsimile">
+        <value xml:lang="de">Im Faksimile markieren</value>
+        <value xml:lang="en">Highlight in Facsimile</value>
+    </key>
     <key xml:id="buttonShowInTranscription">
         <value xml:lang="de">In Transkription anzeigen</value>
         <value xml:lang="en">Show in Transcription</value>
@@ -93,16 +97,32 @@
         <value xml:lang="en">Follow Link</value>
     </key>
     <key xml:id="addedIn">
-        <value xml:lang="de">hinzugefügt in</value>
-        <value xml:lang="en">added in</value>
+        <value xml:lang="de">hinzugefügt in @@1%%</value>
+        <value xml:lang="en">added in @@1%%</value>
     </key>
     <key xml:id="deletedIn">
-        <value xml:lang="de">gestrichen in</value>
-        <value xml:lang="en">deleted in</value>
+        <value xml:lang="de">gestrichen in @@1%%</value>
+        <value xml:lang="en">deleted in @@1%%</value>
+    </key>
+    <key xml:id="restoredIn">
+        <value xml:lang="de">restituiert in @@1%%</value>
+        <value xml:lang="en">restored in @@1%%</value>
+    </key>
+    <key xml:id="restoredAndDeleted">
+        <value xml:lang="de">restituiert und unmittelbar wieder gelöscht in @@1%%</value>
+        <value xml:lang="en">restored and immediately deleted in @@1%%</value>
     </key>
     <key xml:id="inFinalVariant">
         <value xml:lang="de">in finaler</value>
         <value xml:lang="en">in final</value>
+    </key>
+    <key xml:id="alreadyInBaseLayer">
+        <value xml:lang="de">bereits in @@1%% enthalten</value>
+        <value xml:lang="en">already contained in @@1%%</value>
+    </key>
+    <key xml:id="element.neverModified">
+        <value xml:lang="de">(unverändert)</value>
+        <value xml:lang="en">(unmodified)</value>
     </key>
     <key xml:id="dots.1">
         <value xml:lang="de">Punktierter</value>
@@ -176,6 +196,10 @@
         <value xml:lang="de">Bindebogen</value>
         <value xml:lang="en">slur</value>
     </key>
+    <key xml:id="tie">
+        <value xml:lang="de">Haltebogen</value>
+        <value xml:lang="en">tie</value>
+    </key>
     <key xml:id="startingAtTstamp">
         <value xml:lang="de">von Zählzeit @@1%%</value>
         <value xml:lang="en">from beat @@1%%</value>
@@ -196,6 +220,14 @@
         <value xml:lang="de">Dynamik-Angabe</value>
         <value xml:lang="en">Dynamic Indication</value>
     </key>
+    <key xml:id="hairpin.cres">
+        <value xml:lang="de">crescendo-Gabel</value>
+        <value xml:lang="en">hairpin (crescendo)</value>
+    </key>
+    <key xml:id="hairpin.dim">
+        <value xml:lang="de">decrescendo-Gabel</value>
+        <value xml:lang="en">hairpin (diminuendo)</value>
+    </key>
     <key xml:id="link.target">
         <value xml:lang="de">Verweisziel</value>
         <value xml:lang="en">Link target</value>
@@ -213,8 +245,8 @@
         <value xml:lang="en"> of a deletion</value>
     </key>
     <key xml:id="clarification">
-        <value xml:lang="de">Verdeutlichung</value>
-        <value xml:lang="en">Clarification</value>
+        <value xml:lang="de">Verdeutlichung: @@1%%</value>
+        <value xml:lang="en">Clarification: @@1%%</value>
     </key>
     <key xml:id="artic">
         <value xml:lang="de">Artikulationsanweisung (@@1%%)</value>
@@ -223,6 +255,18 @@
     <key xml:id="artic.dot">
         <value xml:lang="de">Artikulation: Staccato-Punkt</value>
         <value xml:lang="en">Articulation: Staccato-Dot</value>
+    </key>
+    <key xml:id="precedes.störstelle">
+        <value xml:lang="de">vor der Störstelle</value>
+        <value xml:lang="en">precedes section under consideration</value>
+    </key>
+    <key xml:id="follows.störstelle">
+        <value xml:lang="de">nach der Störstelle</value>
+        <value xml:lang="en">follows on section under consideration</value>
+    </key>
+    <key xml:id="measure">
+        <value xml:lang="de">Takt @@1%%</value>
+        <value xml:lang="en">measure @@1%%</value>
     </key>
     <!--
     

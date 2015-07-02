@@ -16,7 +16,7 @@
   ],
   "dependencies": {
     "jquery": "~2.1.1",
-    "font-awesome": ">= 4.0.3",
+    "font-awesome": ">= 4.3.0",
     "ace-builds": "master",
     "dataModel":"https://github.com/BeethovensWerkstatt/Data-Model.git",
     "facsimileViewer":"https://github.com/BeethovensWerkstatt/Leaflet.FacsimileViewer.git",

@@ -110,6 +110,8 @@ declare function local:getStates($doc,$genDesc) as xs:string {
                                            if($modification/@facs)
                                            then('"' || $doc/id(substring($modification/@facs,2))/ancestor::mei:surface/@xml:id || '"')
                                            else('"' || $doc/id(substring(($modification//@facs)[1],2))/ancestor::mei:surface/@xml:id || '"')
+                         let $invariantDesc := replace(normalize-space(string-join($state/ancestor::mei:work/mei:notesStmt/mei:annot[@type = 'invarianceDesc' and concat('#',$state/@xml:id) = tokenize(@plist,' ')]//text(),' ')),'"','')
+                         
                          return (
                             '{' ||
                                 '"id":"' || $state/@xml:id || '",' ||
@@ -117,8 +119,8 @@ declare function local:getStates($doc,$genDesc) as xs:string {
                                 '"position":' || $position || ',' || 
                                 '"label":"' || $state/@label || '",' ||
                                 '"pages":[' || string-join(distinct-values($pages[. != '""']),',') || '],' ||
-                                '"stateDesc":"' || normalize-space(string-join($state/mei:stateDesc//text(),' ')) || '",' ||
-                                '"invariantDesc":"(vorläufig: ' || normalize-space(string-join($state/mei:stateDesc//text(),' ')) || ')"' ||
+                                '"stateDesc":"' || normalize-space(replace(string-join($state/mei:stateDesc//text(),' '),'"','')) || '",' ||
+                                '"invariantDesc":"' || $invariantDesc || '"' ||
                             '}'
                          )
      (:

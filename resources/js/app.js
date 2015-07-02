@@ -185,11 +185,16 @@ function getFeatures() {
     	        var stateBox = '<div id="stateContainer_' + state.id + '" class="stateContainer"></div>';
     	        $('#view_overview').append(stateBox);
                 
-                var stateHeading = '<h1><i class="toggle fa fa-caret-down fa-fw"></i><div class="headingIcon"><i class="facsOverlay fa fa-eye fa-fw" data-i18n-title="highlightInFacsimile"></i></div>  '+ state.label +'</h1>';
+                var stateHeading = '<h1><i class="toggle fa fa-caret-down fa-fw"></i><div class="headingIcon"><i class="fa fa-leanpub fa-fw"></i></div>  '+ state.label +'</h1>';
                 var stateBox = '<div class="contentBox"></div>';
                 
                 $('#stateContainer_' + state.id).append(stateHeading);
                 $('#stateContainer_' + state.id).append(stateBox);
+                
+                //event listener to activate the overlay of this state
+                $('#stateContainer_' + state.id + ' > h1').on('click', function() {
+                    facs.activateLayer(overlays[state.id]); 
+                });
                 
                 //event listener to minimize the state's box
                 $('#stateContainer_' + state.id + ' i.fa.toggle').on('click',function() {
@@ -222,20 +227,17 @@ function getFeatures() {
                 $('#stateContainer_' + state.id + ' .perspectiveBox.invariance').append(invarianceDesc);
                 
                 //add listener to show / hide comments (works across layers and invariance view)
-                $('#stateContainer_' + state.id + ' .descBox i.fa.descToggle').on('click',function() {
+                $('#stateContainer_' + state.id + ' .descBox > h2').on('click',function() {
     	            $('#stateContainer_' + state.id + ' .descBox i.fa.descToggle').toggleClass('fa-caret-down').toggleClass('fa-caret-right');
-    	            $('#containerLayers_' + state.id + ' .descBox .content').slideToggle();
+    	            $('#stateContainer_' + state.id + ' .descBox .content').slideToggle();
     	        });
                 
-                
-    	        
-    	        /*$('#containerLayers_' + state.id + ' i.fa.facsOverlay').on('click',function() {
+                /*$('#containerLayers_' + state.id + ' i.fa.facsOverlay').on('click',function() {
     	            console.log('highlight ' + state.id + ' in mode layers');
     	            try {
     	               facs.activateLayer(overlays[state.id]);
     	            } catch(e) {}
     	        });*/
-                
                 
                 var targets = [];
                 targets.push('#' + plainTarget);
@@ -381,6 +383,7 @@ function showPage(pageID, func) {
         var temp = {};
         var activeStateID;
         
+        //get the overlay object and current state's id
         for (var key in overlays) {
         
             if(!overlays.hasOwnProperty(key))
@@ -389,8 +392,7 @@ function showPage(pageID, func) {
             if(overlays[key]._leaflet_id === eventID) {
                 temp = overlays[key];
                 activeStateID = key;
-            }
-                
+            } 
         }
         
         if(typeof activeOverlay !== 'undefined' && activeOverlay._leaflet_id === eventID) {
@@ -403,6 +405,16 @@ function showPage(pageID, func) {
         $('.stateContainer h1.active').removeClass('active');
         $('#stateContainer_' + activeStateID + ' h1').addClass('active');
         adjustOverlay();
+    });
+    
+    facs._map.on('overlayremove', function(e){
+        //the layer with measure numbers will fail this check, only real overlays continue
+        if(typeof e._image === 'undefined')
+            return;
+            
+        activeOverlay = {};
+        currentState = '';
+        $('.stateContainer h1.active').removeClass('active');
     });
 };
 
@@ -597,7 +609,7 @@ function getState(state, targets) {
  * todo: only the first result in the array is processed so far
  */
 function queryElement(id) {
-                    
+    
     new jQuery.getJSON('resources/xql/queryElement.xql',{sourceID: meiFile.id, pathID: id, lang: lang},function(result) {
     	
     	var data = result[0];
@@ -605,25 +617,25 @@ function queryElement(id) {
     	//if nothing found, stop processing
     	if(typeof data === 'undefined')
     	   return;
-    	
-    	getEventSVG(data.id);
-        
+    	    	
         //preserve data.id in attribute data-elemID of dialog
         $('#clickedItemDialog').attr('data-elemID',data.id);
         
         //if bravura string is specified, add it to the dialog
         if(data.bravura !== '') {
-           $('#clickedItemDialog h1').html('<span style="font-family: Bravura" class="bravura ' + data.type + '">' + data.bravura + '</span> ' + data.desc);
+           $('#clickedItemDialog .elementTitle').html('<span style="font-family: Bravura" class="bravura ' + data.type + '">' + data.bravura + '</span> ' + data.desc);
         } else {
-           $('#clickedItemDialog h1').html(data.desc);    
+           $('#clickedItemDialog .elementTitle').html(data.desc);    
         }
+        
+        $('#clickedItemDialog .elementMeasure').html(data.measure + ((data.position !== '') ? ' (' + data.position + ')' : ''));
         
         //if target is specified, add corresponding link, triggers getEventSVG
         //todo: differentiate between outgoing and incoming links
         var link = (typeof data.target !== 'undefined' && data.target !== '') ? '<a href="#" class="previewLink" onclick="getEventSVG(&#34;' + data.target + '&#34;);"><span data-i18n-text="followLink">' + langFile['followLink'] + '</span></a>' : '';
         
         //add description
-        $('#clickedItemDialog .elementInfo').html(link + data.stateDesc);
+        $('#clickedItemDialog .elementDesc').html(link + data.stateDesc);
         
         //add link to corresponding elements in verovio transcriptions for notes and rests, triggers showTranscription
         if(data.type === 'note' || data.type === 'rest') 
@@ -634,19 +646,25 @@ function queryElement(id) {
         //add link to MEI code, triggers showCode
         $('#showCode').attr('onclick','showCode("' + data.id + '");');
         
+        //add link to facsimile, triggers getEventSVG
+        $('#showFacsimile').attr('onclick','getEventSVG("' + data.id + '");');
+        
         //fades in info dialog, and automatically fades it out after given ms (globally specified)
         if($('#clickedItemDialog:hidden')) {
            $('#clickedItemDialog').fadeIn(100,function() {
-               window.setTimeout(function() {
+               
+               
+               /*window.setTimeout(function() {
                    if($('#clickedItemDialog').attr('data-elemID') === data.id)
                        $('#clickedItemDialog').fadeOut();
-               },ms);               
+               },ms);  */             
            });           
         } else {
-           window.setTimeout(function() {
+           
+           /*window.setTimeout(function() {
                if($('#clickedItemDialog').attr('data-elemID') === data.id)
                    $('#clickedItemDialog').fadeOut();
-           },ms);
+           },ms);*/
            
         }
        
@@ -671,11 +689,43 @@ function showTranscription(elemID) {
     //gets all corresponding elements (could be more than one, if member of multiple states)
     var elems = $('*[id = '+elemID + ']');
     
+    var rects = [];
+    
     //change color
-    $(elems).css('fill',highlightColor).css('stroke',highlightColor);
+    //$(elems).css('fill',highlightColor).css('stroke',highlightColor);
+    $(elems).each(function(index) {
+       /*var svgs = $(this).parents('svg');
+       var svg = svgs[svgs.length - 1];
+       
+       var bbox = $('*[ id = "' + elemID + '"]').get(index).getBBox();
+       
+       var rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+       $(svg).append(rect);
+       $(rect).attr('x',bbox.x);
+       $(rect).attr('y',bbox.y);
+       $(rect).attr('height',bbox.height);
+       $(rect).attr('width',bbox.width);
+       $(rect).css('stroke',highlightColor);
+       $(rect).css('stroke-width','2');
+       $(rect).css('stroke-linecap','round');
+       */
+       
+       var oldColor = $($(elems)[index]).css('fill');
+       var oldStroke = $($(elems)[index]).css('stroke');
+       
+       $($(elems)[index]).css('fill',highlightColor);
+       $($(elems)[index]).css('stroke',highlightColor);
+       
+       setTimeout(function() {
+           $($(elems)[index]).css('fill',oldColor);
+           $($(elems)[index]).css('stroke',oldStroke);
+       }, ms);
+    });
+    
+    /*
     setTimeout(function(){
         $(elems).css('fill','#000000').css('stroke','#000000');
-    }, ms);
+    }, ms);*/
 };
 
 /*
@@ -842,7 +892,8 @@ function renderMEI(mei, targets) {
         $(target + ' svg .note, '+ target + ' svg .rest').on('click', function(e) {
             var elem = e.currentTarget;
             //$('#status').html(elem.id);
-            getEventSVG(elem.id);
+            //getEventSVG(elem.id);
+            queryElement(elem.id);
         });
     });
     
@@ -1170,6 +1221,14 @@ $('#hintP17').on('click',function(){
 $('#about, #aboutBox').on('click',function(){
     $('#aboutBox').fadeToggle();
     $('#facsimileBox, #sideBox').toggleClass('blurred');
+});
+
+/*
+ * listener to hide infoDialog
+ */
+ 
+$('#clickedItemDialog header .fa.fa-close').on('click',function(e) {
+    $('#clickedItemDialog').fadeOut(); 
 });
 
 //todo: reconstructing
