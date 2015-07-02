@@ -907,6 +907,9 @@ function renderMEI(mei, targets) {
 function adjustOverlay() {
     
     try {
+        
+        $('.leaflet-overlay-pane svg.overlay path[fill]').attr('fill','rgba(0,0,0,0)');
+        
         if(currentPerspective === 'plain') {
             $('.leaflet-overlay-pane svg.overlay path').attr('fill',highlightColor);
             

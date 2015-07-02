@@ -61,8 +61,17 @@ let $enriched.doc := transform:transform($doc,
 let $states.plain := '{}'
 
 let $states.layers := for $state in $states
-                      let $meiIDs := $enriched.doc//mei:*[((@added = $state/@xml:id) or (@changeState and substring(@changeState,2) = $state/@xml:id)) and not(local-name() = 'measure')]/concat('"',@xml:id,'"')
-                      let $svgIDs := $enriched.doc//mei:*[(@added = $state/@xml:id) or (@changeState and substring(@changeState,2) = $state/@xml:id)]/tokenize(normalize-space(replace(@facs,'#','')),' ')
+                      
+                      let $mei.elements := $enriched.doc//mei:*[((@added = $state/@xml:id) or (@changeState and substring(@changeState,2) = $state/@xml:id)) and not(local-name() = 'measure')]
+                      
+                      let $meiIDs := for $mei.element in $mei.elements
+                                     return
+                                        concat('"',$mei.element/@xml:id,'"')
+                                        
+                      let $svgIDs := for $mei.element in $mei.elements
+                                     return
+                                        tokenize(normalize-space(replace($mei.element/@facs,'#','')),' ')
+                                        
                       let $svgIDs.ticked := for $svgID in $svgIDs
                                             return
                                                 if($svgID != '') then('"' || $svgID || '"') else()
@@ -70,11 +79,12 @@ let $states.layers := for $state in $states
                         '{' ||
                             '"id":"' || $state/@xml:id || '",' ||
                             '"type":"layers",' ||
-                            '"meiIDs":[' || string-join($meiIDs,',') || '],' ||
+                            '"meiIDs":[' || string-join($meiIDs[string-length(.) gt 2],',') || '],' ||
                             '"svgIDs":[' || string-join($svgIDs.ticked,',') || ']' ||
                         '}'
 
 let $states.invariance := for $state in $states
+                          
                           let $native.elems := $enriched.doc//mei:*[((@added = $state/@xml:id) or (@changeState and substring(@changeState,2) = $state/@xml:id)) and not(@sameas) and not(local-name() = 'measure')]
                           let $copied.elems := $enriched.doc//mei:*[substring(@sameas,2) = $native.elems/@xml:id]
                           let $relevant.elems := ($native.elems,$copied.elems)
@@ -94,7 +104,7 @@ let $states.invariance := for $state in $states
                             '{' ||
                                 '"id":"' || $state/@xml:id || '",' ||
                                 '"type":"invariance",' ||
-                                '"meiIDs":[' || string-join($meiIDs.prepared,',') || '],' ||
+                                '"meiIDs":[' || string-join($meiIDs.prepared[string-length(.) gt 2],',') || '],' ||
                                 '"svgIDs":[' || string-join($svgIDs.final,',') || ']' ||
                             '}'
 
