@@ -110,7 +110,7 @@ declare function local:getStates($doc,$genDesc) as xs:string {
                                            if($modification/@facs)
                                            then('"' || $doc/id(substring($modification/@facs,2))/ancestor::mei:surface/@xml:id || '"')
                                            else('"' || $doc/id(substring(($modification//@facs)[1],2))/ancestor::mei:surface/@xml:id || '"')
-                         let $invariantDesc := replace(normalize-space(string-join($state/ancestor::mei:work/mei:notesStmt/mei:annot[@type = 'invarianceDesc' and concat('#',$state/@xml:id) = tokenize(@plist,' ')]//text(),' ')),'"','')
+                         let $invariantDesc := replace(normalize-space(string-join($state/ancestor::mei:work/mei:notesStmt/mei:annot[@type = 'invarianceDesc' and concat('#',$state/@xml:id) = tokenize(@plist,' ')]//text(),' ')),'"','\\"')
                          
                          return (
                             '{' ||
@@ -119,7 +119,7 @@ declare function local:getStates($doc,$genDesc) as xs:string {
                                 '"position":' || $position || ',' || 
                                 '"label":"' || $state/@label || '",' ||
                                 '"pages":[' || string-join(distinct-values($pages[. != '""']),',') || '],' ||
-                                '"stateDesc":"' || normalize-space(replace(string-join($state/mei:stateDesc//text(),' '),'"','')) || '",' ||
+                                '"stateDesc":"' || normalize-space(replace(string-join($state/mei:stateDesc//text(),' '),'"','\\"')) || '",' ||
                                 '"invariantDesc":"' || $invariantDesc || '"' ||
                             '}'
                          )
@@ -143,6 +143,9 @@ declare function local:getStates($doc,$genDesc) as xs:string {
     so selecting a different source is done by changing this default value. 
 :)
 let $source.id := request:get-parameter('sourceID','jkljsdhjkdshkdbnjkdsjndsh')
+
+(:let $source.id := request:get-parameter('sourceID','edirom_source_ebf14eac-f052-4428-82f4-32fae53b9c0f'):)
+
 
 let $doc := collection('/db/apps/SourceViewer/contents/')//mei:mei[@xml:id = $source.id]
 

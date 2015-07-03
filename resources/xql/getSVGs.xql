@@ -66,7 +66,7 @@ declare function local:getStateSVG($doc,$fullSVG,$state, $xslPath, $colors, $i) 
     (:
         get all references to SVG paths (and, in theory, also to measure zones) within the MEI of that state
     :)
-    let $shapeIDs := $stateMEI//mei:measure//mei:*[@facs]/tokenize(@facs,' ')
+    let $shapeIDs := $stateMEI//mei:*[@facs][not(ancestor-or-self::mei:staffDef)][not(local-name() = ('measure'))]/tokenize(@facs,' ')
     
     (:
         Transform the full SVG of that page so that it only contains the SVG shapes which are referenced by the 

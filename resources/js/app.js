@@ -889,7 +889,7 @@ function renderMEI(mei, targets) {
         
         //attach onclick listener to notes and rests to trigger getEventSVG
         //todo: should we add clefs and other elements? attention: clefs may be supplied, so no ID in the svg available. Would it break nicely?
-        $(target + ' svg .note, '+ target + ' svg .rest').on('click', function(e) {
+        $(target + ' svg g.note, ' + target + ' svg g.rest, ' + target + ' svg g.slur, ' + target + ' svg g.tie, ' + target + ' svg g.beam').on('click', function(e) {
             var elem = e.currentTarget;
             //$('#status').html(elem.id);
             //getEventSVG(elem.id);
@@ -910,21 +910,35 @@ function adjustOverlay() {
         
         $('.leaflet-overlay-pane svg.overlay path[fill]').attr('fill','rgba(0,0,0,0)');
         
+        var position = $.map(overlayInfo.layers, function(layer, i) {
+            if(layer.id === currentState) {
+                return i;
+            }
+        });
+        
         if(currentPerspective === 'plain') {
             $('.leaflet-overlay-pane svg.overlay path').attr('fill',highlightColor);
             
         } else if(currentPerspective === 'layers') {
             $.each(overlayInfo.layers, function(index,object) {
-                $.each(object.svgIDs, function(i,id) {
-                    $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
-                });
+                if(index <= position) {
+                    $.each(object.svgIDs, function(i,id) {
+                    
+                        if(id === 'shape_922446ed-60c1-40a7-9cea-35e1b1dbf366')
+                            console.log('spotted');
+                    
+                        $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
+                    });
+                }
             });
             
         } else if(currentPerspective === 'invariance') {
             $.each(overlayInfo.invariance, function(index,object) {
-                $.each(object.svgIDs, function(i,id) {
-                    $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
-                });
+                if(index <= position) {
+                    $.each(object.svgIDs, function(i,id) {
+                        $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
+                    });
+                }
             });
         }    
     } catch(e) {

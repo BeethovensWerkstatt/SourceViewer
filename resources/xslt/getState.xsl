@@ -75,7 +75,7 @@
                     <xsl:when test="local-name() = 'del'">
                         <xsl:choose>
                             <!-- if the whole deletion is restored in a subsequent state, keep content -->
-                            <xsl:when test="parent::mei:restore">
+                            <xsl:when test="ancestor::mei:restore">
                                 <xsl:apply-templates select="child::mei:*" mode="#current"/>
                             </xsl:when>
                             <!-- otherwise drop content-->
@@ -91,8 +91,15 @@
             <!-- action happens in the current state -->
             <xsl:when test="substring(@changeState,2) = $state.id">
                 <xsl:choose>
-                    <!-- content deleted in current state -> no restoration possible -> drop content -->
-                    <xsl:when test="local-name() = 'del'"/>
+                    <!-- content deleted in current state -> no restoration possible -> drop content, but keep
+                        del for its @facs-->
+                    <xsl:when test="local-name() = 'del'">
+                        <xsl:copy>
+                            <xsl:apply-templates select="@*" mode="#current"/>
+                            <!-- the following rule preserves instructions like "aus" -->
+                            <xsl:apply-templates select="descendant::mei:add[substring(@changeState,2) = ($state.id)]/mei:*" mode="#current"/>
+                        </xsl:copy>
+                    </xsl:when>
                     <!-- content added / restored in current state is kept -->
                     <xsl:when test="local-name() = ('add','restore')">
                         <xsl:apply-templates select="child::mei:*" mode="#current"/>
@@ -111,11 +118,12 @@
                     <!-- if content is restored later, check if it's deleted after this event -->
                     <xsl:when test="local-name() = 'restore'">
                         <xsl:choose>
-                            <xsl:when test="child::mei:del and child::mei:del/substring(@changeState,2) = $states.following">
-                                <xsl:apply-templates select="child::mei:*" mode="#current"/>
+                            <xsl:when test="child::mei:del[substring(@changeState,2) = ($states.following,$state.id)]">
+                                <xsl:apply-templates select="child::mei:*" mode="#current"/>        
                             </xsl:when>
                             <xsl:otherwise/>
                         </xsl:choose>
+                        
                     </xsl:when>
                 </xsl:choose>
             </xsl:when>
@@ -424,8 +432,8 @@
     <xsl:template match="@beam" mode="bind.controlEvents"/>
     <xsl:template match="@beamSpan.id" mode="bind.controlEvents"/>
     
-    <!-- this template adds @startid and @endid to slurs -->
-    <xsl:template match="mei:slur" mode="bind.controlEvents">
+    <!-- this template adds @startid and @endid to slurs (and ties) -->
+    <xsl:template match="mei:slur | mei:tie" mode="bind.controlEvents">
         <xsl:variable name="slur" select="." as="node()"/>
         <xsl:variable name="staff.n" select="@staff" as="xs:string"/>
         <xsl:variable name="start.staff" select="ancestor::mei:measure/mei:staff[@n = $staff.n]" as="node()"/>

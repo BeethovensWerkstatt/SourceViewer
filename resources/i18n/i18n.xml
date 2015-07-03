@@ -101,7 +101,7 @@
         <value xml:lang="en">added in @@1%%</value>
     </key>
     <key xml:id="deletedIn">
-        <value xml:lang="de">gestrichen in @@1%%</value>
+        <value xml:lang="de">getilgt in @@1%%</value>
         <value xml:lang="en">deleted in @@1%%</value>
     </key>
     <key xml:id="restoredIn">
@@ -109,8 +109,8 @@
         <value xml:lang="en">restored in @@1%%</value>
     </key>
     <key xml:id="restoredAndDeleted">
-        <value xml:lang="de">restituiert und unmittelbar wieder gelöscht in @@1%%</value>
-        <value xml:lang="en">restored and immediately deleted in @@1%%</value>
+        <value xml:lang="de">bei der Restitution in @@1%% nicht übernommen</value>
+        <value xml:lang="en">not restored for @@1%%</value>
     </key>
     <key xml:id="inFinalVariant">
         <value xml:lang="de">in finaler</value>
