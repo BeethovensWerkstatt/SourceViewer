@@ -148,15 +148,19 @@
                     <xsl:value-of select="local:getLocal('element.neverModified')"/>
                 </xsl:when>
                 
-                <!-- todo: erst ab mei:add auswerten… -->
-                
                 <!-- element modified -->
                 <xsl:otherwise>
                     <xsl:if test="not($modifications[local-name() = 'add'])">
                         <xsl:value-of select="local:getLocal('alreadyInBaseLayer',$doc//mei:genDesc[@ordered = 'true' and @plist]/mei:state[1]/@label)"/>
                     </xsl:if>
                     
-                    <xsl:variable name="involved.states" select="$doc//mei:state[concat('#',@xml:id) = $modifications/@changeState]" as="node()*"/>
+                    <xsl:variable name="add.state.id" select="$modifications[local-name() = 'add'][1]/substring(@changeState,2)" as="xs:string?"/>
+                    
+                    <!-- todo: überprüfen, ob Streichung nochmals gestrichen wird, ohne restituiert zu sein (op.59.3, Viola, Takt 34b…) -->
+                    <xsl:variable name="droppable.mod.states" select="if(exists($add.state.id)) then($doc/id($add.state.id)/preceding-sibling::mei:state/@xml:id) else()" as="xs:string*"/>
+                    
+                    <xsl:variable name="involved.states" select="$doc//mei:state[concat('#',@xml:id) = $modifications/@changeState and not(@xml:id = $droppable.mod.states)]" as="node()*"/>
+                    
                     <xsl:for-each select="$involved.states">
                         <xsl:variable name="current.state" select="." as="node()"/>
                         
@@ -171,6 +175,12 @@
                                     <restoreDel changeState="#{$current.state/@xml:id}"/>
                                 </xsl:variable>
                                 <xsl:value-of select="local:describeModification($combined.mod)"/>
+                            </xsl:when>
+                            <xsl:when test="exists($current.modifications[local-name() = 'add']) and exists($current.modifications[local-name() = 'restore'])">
+                                <xsl:value-of select="local:describeModification($current.modifications[local-name() = 'add'])"/>
+                            </xsl:when>
+                            <xsl:when test="exists($current.modifications[local-name() = 'add']) and exists($current.modifications[local-name() = 'del'])">
+                                <xsl:value-of select="local:describeModification($current.modifications[local-name() = 'add'])"/>
                             </xsl:when>
                             <!-- todo: are there other combinations possible for sharing a state? -->
                         </xsl:choose>
@@ -824,6 +834,12 @@
                 </xsl:when>
                 <xsl:when test="$metaMark/@function = 'clarification'">
                     <xsl:value-of select="local:getLocal('clarification',string-join($metaMark//text(),' '))"/>
+                </xsl:when>
+                <xsl:when test="$metaMark/@function = 'restoration'">
+                    <xsl:value-of select="local:getLocal('restoration',string-join($metaMark//text(),' '))"/>
+                </xsl:when>
+                <xsl:when test="$metaMark/@function = 'deletion'">
+                    <xsl:value-of select="local:getLocal('deletion.text',string-join($metaMark//text(),' '))"/>
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>

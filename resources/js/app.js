@@ -1,6 +1,6 @@
 /*
  * SourceViewer app for eXist database
- * v.0.5.1
+ * v.0.5.3
  *  
  * License: AGPL v3 
  */
