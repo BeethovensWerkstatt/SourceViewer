@@ -1,10 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:math="http://www.w3.org/2005/xpath-functions/math"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:mei="http://www.music-encoding.org/ns/mei"
-    xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
-    exclude-result-prefixes="xs xd math mei"
-    version="3.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" exclude-result-prefixes="xs xd math mei" version="3.0">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>
@@ -62,7 +56,6 @@
         <!-- finally, controlEvents (like slurs) are attached with
             @startid and @endid (as opposed to @tstamp and @tstamp2 -->
         <xsl:apply-templates select="$added.tstamps" mode="bind.controlEvents"/>
-        
     </xsl:template>
     
     <!-- decide how to deal with modifications to the source in order to re-establish the sought state -->
@@ -119,11 +112,10 @@
                     <xsl:when test="local-name() = 'restore'">
                         <xsl:choose>
                             <xsl:when test="child::mei:del[substring(@changeState,2) = ($states.following,$state.id)]">
-                                <xsl:apply-templates select="child::mei:*" mode="#current"/>        
+                                <xsl:apply-templates select="child::mei:*" mode="#current"/>
                             </xsl:when>
                             <xsl:otherwise/>
                         </xsl:choose>
-                        
                     </xsl:when>
                 </xsl:choose>
             </xsl:when>
@@ -217,7 +209,6 @@
     <xsl:template match="mei:measure" mode="add.tstamps">
         <xsl:variable name="meter.count" select="preceding::mei:scoreDef[@meter.count][1]/@meter.count cast as xs:integer" as="xs:integer"/>
         <xsl:variable name="meter.unit" select="preceding::mei:scoreDef[@meter.unit][1]/@meter.unit cast as xs:integer" as="xs:integer"/>
-        
         <xsl:copy>
             <xsl:apply-templates select="node() | @*" mode="#current">
                 <xsl:with-param name="meter.count" select="$meter.count" tunnel="yes"/>
@@ -230,10 +221,8 @@
     <xsl:template match="mei:layer" mode="add.tstamps">
         <xsl:param name="meter.count" tunnel="yes"/>
         <xsl:param name="meter.unit" tunnel="yes"/>
-        
         <xsl:variable name="events" select=".//mei:*[(@dur and not((ancestor::mei:*[@dur] or ancestor::mei:bTrem or ancestor::mei:fTrem)) and not(@grace)) or (local-name() = ('bTrem','fTrem','beatRpt','halfmRpt'))]"/>
         <xsl:variable name="durations" as="xs:double*">
-            
             <xsl:for-each select="$events">
                 <xsl:variable name="dur" as="xs:double">
                     <xsl:choose>
@@ -289,7 +278,6 @@
                 <event id="{@xml:id}" onset="{sum($durations[position() lt $pos])}"/>
             </xsl:for-each>
         </xsl:variable>
-        
         <xsl:copy>
             <xsl:apply-templates select="node() | @*" mode="#current">
                 <xsl:with-param name="tstamps" select="$tstamps" tunnel="yes"/>
@@ -319,7 +307,7 @@
                 <xsl:when test="local-name() = 'halfmRpt'">
                     <xsl:choose>
                         <xsl:when test="$meter.count = 4 and $meter.unit = 4">
-                            <xsl:attribute name="dur" select="2"/>        
+                            <xsl:attribute name="dur" select="2"/>
                         </xsl:when>
                         <xsl:when test="$meter.count = 6 and $meter.unit = 8">
                             <xsl:attribute name="dur" select="4"/>
@@ -338,9 +326,7 @@
                     </xsl:choose>
                 </xsl:when>
             </xsl:choose>
-            
             <xsl:variable name="tstamp" select="($onset * $meter.unit) + 1" as="xs:double"/>
-            
             <xsl:attribute name="tstamp" select="$tstamp"/>
             
             <!-- check for beamSpans starting at this element -->
@@ -363,24 +349,22 @@
                     <xsl:attribute name="beam" select="'t'"/>
                     <xsl:attribute name="beamSpan.id" select="$matching.beamSpan/@xml:id"/>
                 </xsl:when>
-                <xsl:when test="some $beamSpan in $beamSpans satisfies
-                    ($tstamp gt $beamSpan/number(@tstamp) and
-                    (if(contains($beamSpan/@tstamp2,'m+'))
-                    then($tstamp lt number($beamSpan/substring-after(@tstamp2,'m+')))
-                    else($tstamp lt number($beamSpan/@tstamp2)))
+                <xsl:when test="some $beamSpan in $beamSpans satisfies 
+                    ($tstamp gt $beamSpan/number(@tstamp) and 
+                        (if(contains($beamSpan/@tstamp2,'m+')) 
+                        then($tstamp lt number($beamSpan/substring-after(@tstamp2,'m+')))  
+                        else($tstamp lt number($beamSpan/@tstamp2))) 
                     )">
-                    <xsl:variable name="relevant.beamSpan" select="$beamSpans[$tstamp gt number(@tstamp) and
-                        $tstamp lt number(substring-after(@tstamp2,'m+'))][1]" as="node()"/>
-                    <xsl:attribute name="beam" select="'t'"/>
+                    
+                    <xsl:variable name="relevant.beamSpan" select="$beamSpans[$tstamp gt number(@tstamp) and 
+                        (if(contains(@tstamp2,'m+')) then($tstamp lt number(substring-after(@tstamp2,'m+'))) else($tstamp lt number(@tstamp2)))][1]" as="node()"/>
+                    <xsl:attribute name="beam" select="'m'"/>
                     <xsl:attribute name="beamSpan.id" select="$relevant.beamSpan/@xml:id"/>
                 </xsl:when>
             </xsl:choose>
-            
-            
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
     <xsl:template match="mei:mRest" mode="add.tstamps">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
@@ -388,7 +372,6 @@
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
     <xsl:template match="mei:mSpace" mode="add.tstamps">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
@@ -396,7 +379,6 @@
             <xsl:apply-templates select="node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
-    
     <xsl:template match="mei:mRpt" mode="add.tstamps">
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="#current"/>
@@ -428,7 +410,6 @@
             <xsl:next-match/>
         </xsl:if>
     </xsl:template>
-    
     <xsl:template match="@beam" mode="bind.controlEvents"/>
     <xsl:template match="@beamSpan.id" mode="bind.controlEvents"/>
     
@@ -441,19 +422,18 @@
             <xsl:choose>
                 <!-- exactly one layer -->
                 <xsl:when test="count($start.staff/mei:layer) = 1 and not(@layer)">
-                    <xsl:sequence select="$start.staff//mei:*[@tstamp = $slur/@tstamp][1]"/>
+                    <xsl:sequence select="($start.staff//mei:*[@tstamp = $slur/@tstamp and local-name() = ('note','chord','rest')])[1]"/>
                 </xsl:when>
                 <!-- layer specified, and layer available -->
                 <xsl:when test="exists(@layer) and @layer = $start.staff/mei:layer/@n">
-                    <xsl:sequence select="$start.staff/mei:layer[@n = $slur/@layer]/mei:*[@tstamp = $slur/@tstamp][1]"/>
+                    <xsl:sequence select="($start.staff/mei:layer[@n = $slur/@layer]/mei:*[@tstamp = $slur/@tstamp and local-name() = ('note','chord','rest')])[1]"/>
                 </xsl:when>
                 <!-- more than one layer available, but not clearly specified -->
                 <xsl:when test="count($start.staff/mei:layer) gt 1 and not(@layer)">
-                    <xsl:sequence select="$start.staff//mei:*[@tstamp = $slur/@tstamp][1]"/>
+                    <xsl:sequence select="($start.staff//mei:*[@tstamp = $slur/@tstamp and local-name() = ('note','chord','rest')])[1]"/>
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
-        
         <xsl:variable name="measure.dist" as="xs:integer">
             <!-- calculate how many measure the slur stretches -->
             <xsl:choose>
@@ -465,7 +445,6 @@
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:variable>
-        
         <xsl:variable name="end.staff" as="node()">
             <xsl:choose>
                 <xsl:when test="$measure.dist = 0">
@@ -502,20 +481,17 @@
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
-        
         <xsl:if test="not($start.elem)">
             <xsl:message select="concat('there seems to be no matching element for slur/@xml:id=',$slur/@xml:id,' at tstamp=',$slur/@tstamp,' in state ',$state.id)"/>
         </xsl:if>
         <xsl:if test="not($end.elem)">
             <xsl:message select="concat('there seems to be no matching element for slur/@xml:id=',$slur/@xml:id,' at tstamp2=',$slur/@tstamp2,' in state ',$state.id)"/>
         </xsl:if>
-        
         <xsl:copy>
             <xsl:attribute name="startid" select="concat('#',$start.elem/@xml:id)"/>
             <xsl:attribute name="endid" select="concat('#',$end.elem/@xml:id)"/>
             <xsl:apply-templates select="node() | @*" mode="#current"/>
         </xsl:copy>
-        
     </xsl:template>
     
     <!-- required only as exist-db doesn't support the regular math:pow function: bug! -->

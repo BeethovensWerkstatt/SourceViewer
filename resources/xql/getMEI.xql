@@ -50,7 +50,7 @@ let $output := if($state.id = '')
                     let $prep := transform:transform($stripped,
                                  doc(concat($xslPath,'prepareRendering.xsl')), <parameters/>)
                     return 
-                        $prep
+                        $stripped
                 )
 
 return
