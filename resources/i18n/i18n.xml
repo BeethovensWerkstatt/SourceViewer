@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <collection>
     <key xml:id="tooltipFullscreen">
         <value xml:lang="de">Vollbildansicht umschalten</value>
@@ -11,6 +10,10 @@
     <key xml:id="buttonPagePreview">
         <value xml:lang="de">Seitenübersicht</value>
         <value xml:lang="en">Manuscript Pages</value>
+    </key>
+    <key xml:id="buttonShowInFacsimile">
+        <value xml:lang="de">Im Faksimile markieren</value>
+        <value xml:lang="en">Highlight in Facsimile</value>
     </key>
     <key xml:id="buttonShowInTranscription">
         <value xml:lang="de">In Transkription anzeigen</value>
@@ -37,16 +40,44 @@
         <value xml:lang="en">Description</value>
     </key>
     <key xml:id="tabVariants">
+        <value xml:lang="de">Transkriptionen</value>
+        <value xml:lang="en">Transcriptions</value>
+    </key>
+    <key xml:id="tabPlainPerspective">
         <value xml:lang="de">Variantenabfolge</value>
-        <value xml:lang="en">Variants</value>
+        <value xml:lang="en">Sequence of Variants</value>
+    </key>
+    <key xml:id="tabLayersPerspective">
+        <value xml:lang="de">Schreibprozess</value>
+        <value xml:lang="en">Writing process</value>
+    </key>
+    <key xml:id="tabInvariancePerspective">
+        <value xml:lang="de">Invarianz</value>
+        <value xml:lang="en">Textual Genesis</value>
+    </key>
+    <key xml:id="stateDescHeading">
+        <value xml:lang="de">Beschreibung</value>
+        <value xml:lang="en">Description</value>
+    </key>
+    <key xml:id="highlightInFacsimile">
+        <value xml:lang="de">Im Faksimile hervorheben</value>
+        <value xml:lang="en">highlight in facsimile</value>
+    </key>
+    <key xml:id="perspectiveSwitch">
+        <value xml:lang="de">Darstellungsmodus</value>
+        <value xml:lang="en">Coloring Mode</value>
     </key>
     <key xml:id="aboutText">
         <value xml:lang="de">Diese Demoversion wurde von den Mitarbeitern des Projekts Beethovens Werkstatt entwickelt. Sie beinhaltet Codierungen der Beethovenschen Manuskripte, denen das XML-basierte Datenformat MEI zugrunde liegt. Diese werden mithilfe von skalierbaren Vektorgrafiken (SVGs) mit den hochauflösenden Faksimiles des Beethoven-Hauses Bonn verknüpft. Die Darstellung der Notentexte erfolgt mit Verovio, welches MEI-Daten in gewohnte Notenschrift konvertiert. Der vorliegende Prototyp ist weder methodisch noch technisch ausgereift und ist lediglich als Ausgangspunkt der weiteren Arbeiten des Projekts zu verstehen.</value>
         <value xml:lang="en">This demo was developed by the Beethovens Werkstatt team. It is build on encodings of Beethoven's manuscripts with MEI, combined with Scalable Vector Graphics (SVG) and the high-resolution digitizations of the Beethoven-Haus in Bonn, Germany. Musical texts are rendered with Verovio, which natively supports MEI. This prototype is just a proof of concept and may not be misunderstood as a final product – neither with regard to the concepts and methods nor from a technical perspective. </value>
     </key>
     <key xml:id="versionString">
-        <value xml:lang="de">Version 0.4.1 (2015-03-17) | © 2015 Beethovens Werkstatt</value>
-        <value xml:lang="en">Version 0.4.1 (2015-03-17) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="de">Version 0.5.8 (2015-09-25) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="en">Version 0.5.8 (2015-09-25) | © 2015 Beethovens Werkstatt</value>
+    </key>
+    <key xml:id="selectIntro">
+        <value xml:lang="de">Bitte wählen Sie die anzuzeigende Probe-Edition aus.</value>
+        <value xml:lang="en">Please select the demo edition to load.</value>
     </key>
     <key xml:id="loadingStartup">
         <value xml:lang="de">Anwendung wird geladen</value>
@@ -69,16 +100,32 @@
         <value xml:lang="en">Follow Link</value>
     </key>
     <key xml:id="addedIn">
-        <value xml:lang="de">hinzugefügt in</value>
-        <value xml:lang="en">added in</value>
+        <value xml:lang="de">hinzugefügt in @@1%%</value>
+        <value xml:lang="en">added in @@1%%</value>
     </key>
     <key xml:id="deletedIn">
-        <value xml:lang="de">gestrichen in</value>
-        <value xml:lang="en">deleted in</value>
+        <value xml:lang="de">getilgt in @@1%%</value>
+        <value xml:lang="en">deleted in @@1%%</value>
+    </key>
+    <key xml:id="restoredIn">
+        <value xml:lang="de">restituiert in @@1%%</value>
+        <value xml:lang="en">restored in @@1%%</value>
+    </key>
+    <key xml:id="restoredAndDeleted">
+        <value xml:lang="de">bei der Restitution in @@1%% nicht übernommen</value>
+        <value xml:lang="en">not restored for @@1%%</value>
     </key>
     <key xml:id="inFinalVariant">
         <value xml:lang="de">in finaler</value>
         <value xml:lang="en">in final</value>
+    </key>
+    <key xml:id="alreadyInBaseLayer">
+        <value xml:lang="de">bereits in @@1%% enthalten</value>
+        <value xml:lang="en">already contained in @@1%%</value>
+    </key>
+    <key xml:id="element.neverModified">
+        <value xml:lang="de">(unverändert)</value>
+        <value xml:lang="en">(unmodified)</value>
     </key>
     <key xml:id="dots.1">
         <value xml:lang="de">Punktierter</value>
@@ -152,6 +199,10 @@
         <value xml:lang="de">Bindebogen</value>
         <value xml:lang="en">slur</value>
     </key>
+    <key xml:id="tie">
+        <value xml:lang="de">Haltebogen</value>
+        <value xml:lang="en">tie</value>
+    </key>
     <key xml:id="startingAtTstamp">
         <value xml:lang="de">von Zählzeit @@1%%</value>
         <value xml:lang="en">from beat @@1%%</value>
@@ -172,6 +223,14 @@
         <value xml:lang="de">Dynamik-Angabe</value>
         <value xml:lang="en">Dynamic Indication</value>
     </key>
+    <key xml:id="hairpin.cres">
+        <value xml:lang="de">crescendo-Gabel</value>
+        <value xml:lang="en">hairpin (crescendo)</value>
+    </key>
+    <key xml:id="hairpin.dim">
+        <value xml:lang="de">decrescendo-Gabel</value>
+        <value xml:lang="en">hairpin (diminuendo)</value>
+    </key>
     <key xml:id="link.target">
         <value xml:lang="de">Verweisziel</value>
         <value xml:lang="en">Link target</value>
@@ -188,9 +247,13 @@
         <value xml:lang="de"> einer Streichung</value>
         <value xml:lang="en"> of a deletion</value>
     </key>
+    <key xml:id="confirmation.restore">
+        <value xml:lang="de"> einer Wiederherstellung</value>
+        <value xml:lang="en"> of a restored text</value>
+    </key>
     <key xml:id="clarification">
-        <value xml:lang="de">Verdeutlichung</value>
-        <value xml:lang="en">Clarification</value>
+        <value xml:lang="de">Verdeutlichung: @@1%%</value>
+        <value xml:lang="en">Clarification: @@1%%</value>
     </key>
     <key xml:id="artic">
         <value xml:lang="de">Artikulationsanweisung (@@1%%)</value>
@@ -199,6 +262,46 @@
     <key xml:id="artic.dot">
         <value xml:lang="de">Artikulation: Staccato-Punkt</value>
         <value xml:lang="en">Articulation: Staccato-Dot</value>
+    </key>
+    <key xml:id="precedes.störstelle">
+        <value xml:lang="de">vor der Textnarbe</value>
+        <value xml:lang="en">precedes textual scar</value>
+    </key>
+    <key xml:id="follows.störstelle">
+        <value xml:lang="de">nach der Textnarbe</value>
+        <value xml:lang="en">follows textual scar</value>
+    </key>
+    <key xml:id="measure">
+        <value xml:lang="de">Takt @@1%%</value>
+        <value xml:lang="en">measure @@1%%</value>
+    </key>
+    <key xml:id="restoration">
+        <value xml:lang="de">Restituierung: @@1%%</value>
+        <value xml:lang="en">Restoration: @@1%%</value>
+    </key>
+    <key xml:id="deletion.text">
+        <value xml:lang="de">Kanzellierung: @@1%%</value>
+        <value xml:lang="en">Cancellation: @@1%%</value>
+    </key>
+    <key xml:id="cpMark">
+        <value xml:lang="de">Kurzschreibweise</value>
+        <value xml:lang="en">Abbreviation</value>
+    </key>
+    <key xml:id="cpMark.collaParte">
+        <value xml:lang="de">colla parte mit @@1%%, @@2%% @@3%% @@4%%</value>
+        <value xml:lang="en">colla parte with @@1%%, @@2%% @@3%% @@4%%</value>
+    </key>
+    <key xml:id="in8va">
+        <value xml:lang="de">(oktaviert)</value>
+        <value xml:lang="en">(in octave)</value>
+    </key>
+    <key xml:id="barline.atMeasure">
+        <value xml:lang="de">Taktstrich zu Takt @@1%%</value>
+        <value xml:lang="en">barline at measure @@1%%</value>
+    </key>
+    <key xml:id="barline.betweenMeasures">
+        <value xml:lang="de">Taktstrich zwischen Takt @@1%% und @@2%%</value>
+        <value xml:lang="en">barline between measures @@1%% and @@2%%</value>
     </key>
     <!--
     

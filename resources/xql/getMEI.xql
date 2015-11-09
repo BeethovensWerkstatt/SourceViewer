@@ -42,7 +42,7 @@ let $rawDoc := transform:transform($doc,
     (which can be used for rendering). If no stateID is provided, the whole MEI file is returned.
 :)
 let $output := if($state.id = '')
-                then($doc)
+                then($rawDoc)
                 else(
                     let $stripped :=      transform:transform($doc,
                       doc(concat($xslPath,'getState.xsl')), <parameters><param name="state.id" value="{$state.id}"/><param name="textOnly" value="{true()}"/></parameters>)
@@ -50,7 +50,7 @@ let $output := if($state.id = '')
                     let $prep := transform:transform($stripped,
                                  doc(concat($xslPath,'prepareRendering.xsl')), <parameters/>)
                     return 
-                        $prep
+                        $stripped
                 )
 
 return

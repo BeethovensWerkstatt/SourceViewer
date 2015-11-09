@@ -40,6 +40,15 @@
         <xsl:apply-templates/>
     </xsl:template>
     
+    <!-- add @class="overlay" to the root svg element. -->
+    <xsl:template match="svg">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:attribute name="class" select="'overlay'"/>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- When the @id of any given <svg:path> is contained in the $shapeList array, keep the element. Otherwise, drop it. -->
     <xsl:template match="path">
         <xsl:if test="@id = $shapeList">
@@ -57,6 +66,10 @@
     <!-- replace all @fill values with the provided $color -->
     <xsl:template match="@fill">
         <xsl:attribute name="fill" select="$color"/>
+    </xsl:template>
+    
+    <xsl:template match="@opacity">
+        <xsl:attribute name="opacity" select="'0.8'"/>
     </xsl:template>
     
     <!-- generic copy template -->

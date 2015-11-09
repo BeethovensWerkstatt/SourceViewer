@@ -19,7 +19,7 @@
     </xd:doc>
     
     <!-- defines the color to be used when elements are highlighted -->
-    <xsl:variable name="highlightColor" select="'#00ffff'" as="xs:string"/>
+    <xsl:param name="highlightColor" as="xs:string"/>
     
     <!-- start processing -->
     <xsl:template match="/">

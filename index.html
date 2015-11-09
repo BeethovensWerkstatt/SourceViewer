@@ -56,13 +56,21 @@
                         Ausführlichere Informationen erhalten Sie zu den Seiten <a href="#" id="hintP14">14</a> und <a href="#" id="hintP17">17</a>. </p>
                 </div>-->
                 <div id="clickedItemDialog" class="infoDialog" style="display: none;">
-                    <h1/>
-                    <p class="elementInfo"/>
+                    <header><label data-i18n-text="detailsBoxHeading">Details</label><i class="fa fa-close"/></header>
+                    <p class="elementTitle"/>
+                    <p class="elementDesc"/>
+                    <p class="elementMeasure"/>
                     <p>
+                        <a class="previewLink" href="#" id="showFacsimile">
+                            <i class="fa fa-fw fa-file-o"/> <span data-i18n-text="buttonShowInFacsimile"></span></a>
                         <a class="previewLink" href="#" id="showTranscription">
-                            <i class="fa fa-angle-double-right"/> <span data-i18n-text="buttonShowInTranscription"></span></a>
+                            <i class="fa fa-fw fa-pencil"/>
+                            <span data-i18n-text="buttonShowInTranscription"/>
+                        </a>
                         <a class="previewLink" href="#" id="showCode">
-                            <i class="fa fa-angle-double-right"/> <span data-i18n-text="buttonShowInCode"></span></a>
+                            <i class="fa fa-fw fa-code"/>
+                            <span data-i18n-text="buttonShowInCode"/>
+                        </a>
                     </p>
                 </div>
                 <div id="pagination" style="display: none;">
@@ -84,10 +92,10 @@
                             <i class="fa fa-code fa-lg"/>
                             <label data-i18n-text="tabCode"></label>
                         </li>
-                        <li id="tab_desc" data-target="#view_desc">
+                        <!--<li id="tab_desc" data-target="#view_desc">
                             <i class="fa fa-file-text-o fa-lg"/>
                             <label data-i18n-text="tabDesc"></label>
-                        </li>
+                        </li>-->
                         <li id="tab_overview" class="active" data-target="#view_overview">
                             <i class="fa fa-list-ol"/>
                             <label data-i18n-text="tabVariants"></label>
@@ -102,9 +110,27 @@
             </div>
             
             <div id="sideBox_content">
-                <div id="view_overview" style="display: block;"/>
+                <div id="view_overview" style="display: block;">
+                    <!--<nav id="perspectiveTabs">
+                        <ul>
+                            <li id="tab_plain" class="active" data-target="#plain_transcript">
+                                <label data-i18n-text="tabPlainPerspective"></label>
+                            </li>
+                            <li id="tab_layers" data-target="#layers_transcript">
+                                <label data-i18n-text="tabLayersPerspective"></label>
+                            </li>
+                            <li id="tab_invariance" data-target="#invariance_transcript">
+                                <label data-i18n-text="tabInvariancePerspective"></label>
+                            </li>
+                        </ul>
+                    </nav>
+                    <div id="plain_transcript" class="perspectiveBox" style="display: block;"></div>
+                    <div id="layers_transcript" class="perspectiveBox" style="display: none;"></div>
+                    <div id="invariance_transcript" class="perspectiveBox" style="display: none;"></div>
+                    -->
+                </div>
                 <div id="view_compare" style="display: none;"/>
-                <div id="view_desc" style="display: none;"/>
+                <!--<div id="view_desc" style="display: none;"/>-->
                 <div id="view_mei" style="display: none;">
                     <div id="mei_editor"/>
                 </div>
@@ -121,7 +147,28 @@
             </div>
         </div>
         
-        <div id="loading">
+        <div id="selectorBox" style="">
+            <div class="inner">
+                <img src="resources/images/logoBW.png" id="logoBW"/>
+                <p data-i18n-text="selectIntro"></p>
+                <ul>
+                    <li class="edition" data-sourceID="jkljsdhjkdshkdbnjkdsjndsh">
+                        <img src="contents/Op.59.3/Op.59.3_A/Op.59.3_A_p19/Op.59.3_A_p19_preview.png" class="previewImage"/>
+                        <h1>Op.59,3</h1>
+                    </li>
+                    <!--<li class="edition" data-sourceID="edirom_source_ebf14eac-f052-4428-82f4-32fae53b9c0f">
+                        <img src="contents/Op.111/Op.111_A/Op.111_A_p14/Op.111_A_p14_preview.png" class="previewImage"/>
+                        <h1>Op.111</h1>
+                    </li>-->
+                </ul>
+                <p>
+                    <span class="version" data-i18n-text="versionString"></span>
+                </p>
+            </div>
+        </div>
+        
+        
+        <div id="loading" style="display: none;">
             <div class="inner">
                 <h1>
                     <i class="fa fa-cog fa-spin"/> <span data-i18n-text="loadingStartup"></span></h1>
