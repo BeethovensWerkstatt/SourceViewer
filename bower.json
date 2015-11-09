@@ -1,6 +1,6 @@
 {
   "name": "SourceViewer",
-  "version": "0.5.3",
+  "version": "0.5.8",
   "authors": [
     "Johannes Kepper <kepper@edirom.de>",
     "Maja Hartwig <hartwig@beethovens-werkstatt.de>"
@@ -20,7 +20,7 @@
     "ace-builds": "master",
     "dataModel":"https://github.com/BeethovensWerkstatt/Data-Model.git",
     "facsimileViewer":"https://github.com/BeethovensWerkstatt/Leaflet.FacsimileViewer.git",
-    "verovio":"https://github.com/rism-ch/verovio/releases/download/version-0.9.6/verovio-toolkit-0.9.6.js.zip"
+    "verovio":"https://github.com/rism-ch/verovio/releases/download/version-0.9.8/verovio-toolkit-0.9.8.js.zip"
   },
   "devDependencies": {
     "existdb-node": "https://github.com/wolfgangmm/existdb-node.git"

@@ -32,7 +32,18 @@ declare function local:getPage($doc,$surface) as xs:string {
         that the measure holds encoded music).    
     :)
     let $zones := $surface//mei:zone
-    let $measures := $doc//mei:measure[some $facs in tokenize(@facs,' ') satisfies substring($facs,2) = $zones/@xml:id]
+    let $measure.ids := distinct-values($doc//mei:measure[some $facs in tokenize(@facs,' ') satisfies substring($facs,2) = $zones/@xml:id]/@xml:id)
+    let $measures := $doc//mei:measure[@xml:id = $measure.ids]
+    
+    let $measures :=
+        for $measure in $doc//mei:measure
+        let $tokens := tokenize($measure/replace(@facs,'#',''),' ')
+        let $zone := $zones[@xml:id = $tokens]
+        return
+            if(exists($zone))
+            then($measure)
+            else()
+    
     let $containsMusic := boolean(some $measure in $measures satisfies exists($measure//mei:layer))
     
     (: get basic parameters of the page :)
@@ -46,22 +57,26 @@ declare function local:getPage($doc,$surface) as xs:string {
         iterate over the measures on that page (as identified above) and generate a JSON object for each of their
         refered zones, which holds information about positioning and the measure label. Returns a string.  
     :)
-    let $measuresString := for $measure in $measures
-                           return (
-                                for $fac in $measure/tokenize(@facs,' ')
-                                let $zone := $surface//mei:zone[concat('#',@xml:id) = $fac]
-                                return
-                           
-                               '{' ||
-                                    '"id":"' || $measure/@xml:id || '",' ||
-                                    '"n":"' || $measure/@n || '",' ||
-                                    '"label":"' || $measure/@label || '",' ||
-                                    '"ulx":"' || $zone/@ulx || '",' ||
-                                    '"uly":"' || $zone/@uly || '",' ||
-                                    '"lrx":"' || $zone/@lrx || '",' ||
-                                    '"lry":"' || $zone/@lry || '"' ||
-                               '}'
-                           )
+    let $measuresString := 
+        for $measure in $measures
+        return (
+            for $fac in $measure/tokenize(@facs,' ')
+            let $zone := $surface//mei:zone[concat('#',@xml:id) = $fac]
+            return
+                if(exists($zone))
+                then(
+                    '{' ||
+                        '"id":"' || $measure/@xml:id || '",' ||
+                        '"n":"' || $measure/@n || '",' ||
+                        '"label":"' || $measure/@label || '",' ||
+                        '"ulx":"' || $zone/@ulx || '",' ||
+                        '"uly":"' || $zone/@uly || '",' ||
+                        '"lrx":"' || $zone/@lrx || '",' ||
+                        '"lry":"' || $zone/@lry || '"' ||
+                    '}'
+                )
+                else()
+        )
                            
     (:
         returns a JSON object with all information found as a string

@@ -22,6 +22,7 @@
     
     <!-- start processing -->
     <xsl:template match="/">
+        
         <xsl:apply-templates/>
     </xsl:template>
     <xsl:template match="mei:add[@changeState]">

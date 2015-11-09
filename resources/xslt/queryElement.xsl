@@ -402,10 +402,10 @@
             <xsl:choose>
                 <xsl:when test="not($staff.n)"/>
                 <xsl:when test="$doc//mei:staffDef[@n = $staff.n]/@label">
-                    <xsl:value-of select="concat(', ',$doc//mei:staffDef[@n = $staff.n]/@label)"/>
+                    <xsl:value-of select="concat(', ',($doc//mei:staffDef[@n = $staff.n])[1]/@label)"/>
                 </xsl:when>
                 <xsl:when test="$doc//mei:staffDef[@n = $staff.n]/ancestor::mei:staffGrp/@label">
-                    <xsl:value-of select="concat(', ',$doc//mei:staffDef[@n = $staff.n]/ancestor::mei:staffGrp[@label][1]/@label)"/>
+                    <xsl:value-of select="concat(', ',($doc//mei:staffDef[@n = $staff.n])[1]/ancestor::mei:staffGrp[@label][1]/@label)"/>
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
@@ -429,7 +429,7 @@
             </xsl:when>
             <xsl:otherwise>
                 <xsl:variable name="measure" select="$elem/ancestor::mei:measure" as="node()"/>
-                <xsl:variable name="affected.measures" select="$doc//mei:genDesc[@ordered = 'true' and @plist]/tokenize(replace(@plist,'#',''),' ')"/>
+                <xsl:variable name="affected.measures" select="$doc//mei:section[@xml:id = $doc//mei:genDesc[@ordered = 'true' and @plist]/tokenize(replace(@plist,'#',''),' ')]//mei:measure/@xml:id" as="xs:string*"/>
                 <xsl:choose>
                     <!-- elem is within the "Störstelle" -->
                     <xsl:when test="$measure/@xml:id = $affected.measures">
@@ -769,6 +769,9 @@
                             <xsl:when test="local-name($target) = 'del'">
                                 <xsl:value-of select="local:getLocal('confirmation.deletion')"/>
                             </xsl:when>
+                            <xsl:when test="local-name($target) = 'restore'">
+                                <xsl:value-of select="local:getLocal('confirmation.restore')"/>
+                            </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="''"/>
                             </xsl:otherwise>
@@ -811,6 +814,87 @@
             </xsl:choose>
         </xsl:variable>
         <xsl:value-of select="concat('{&#34;type&#34;:&#34;metaMark&#34;,',              '&#34;id&#34;:&#34;',$metaMark/@xml:id,'&#34;,',              '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',             '&#34;bravura&#34;:&#34;&#34;,',                 '&#34;measure&#34;:&#34;',local:getMeasure($metaMark),'&#34;,',             '&#34;position&#34;:&#34;',local:qualifyPosition($metaMark),'&#34;,',             '&#34;target&#34;:&#34;',$target,'&#34;,',                '&#34;desc&#34;:&#34;',$function,'&#34;}')"/>
+    </xsl:function>
+    
+    <!-- this function more or less only gets the text content of the cpMark… -->
+    <xsl:function name="local:processCpMark" as="xs:string">
+        <xsl:param name="cpMark" required="yes" as="node()"/>
+        <xsl:variable name="stateDesc" select="local:getStateDesc($cpMark)" as="xs:string"/>
+        <xsl:variable name="desc" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="$cpMark/@ref.staff">
+                    <xsl:variable name="other.staff" select="($doc//mei:staffDef[@n = $cpMark/@ref.staff])[1]/@label" as="xs:string"/>
+                    <xsl:variable name="startLabel" select="local:getLocal('startingAtTstamp',$cpMark/@tstamp)" as="xs:string"/>
+                    <xsl:variable name="endLabel" as="xs:string">
+                        <xsl:choose>
+                            <xsl:when test="starts-with($cpMark/@tstamp2,'0m')">
+                                <xsl:value-of select="concat(' ', local:getLocal('endingAtTstamp',substring-after($cpMark/@tstamp2,'0m+')))"/>
+                            </xsl:when>
+                            <xsl:when test="starts-with($cpMark/@tstamp2,'1m')">
+                                <xsl:value-of select="concat(' ', local:getLocal('endingAtTstampOfNextMeasure',substring-after($cpMark/@tstamp2,'1m+')))"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="concat(' ',local:getLocal('endingAtTstampOfNextMeasure',local:getOrdinal(substring-before($cpMark/@tstamp2,'m+')),substring-after($cpMark/@tstamp2,'1m+')))"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>                    
+                    <xsl:value-of select="local:getLocal('cpMark.collaParte',$other.staff,$startLabel,$endLabel,if($cpMark/@dis) then(local:getLocal('in8va')) else(''))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="local:getLocal('cpMark')"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;cpMark&#34;,',
+            '&#34;id&#34;:&#34;',$cpMark/@xml:id,'&#34;,',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;',local:getMeasure($cpMark),'&#34;,',
+            '&#34;position&#34;:&#34;',local:qualifyPosition($cpMark),'&#34;,',
+            '&#34;desc&#34;:&#34;',$desc,'&#34;}')"/>
+    </xsl:function>
+    
+    <!-- this function addresses barlines -->
+    <xsl:function name="local:processBarline" as="xs:string">
+        <xsl:param name="first.measure" required="yes" as="node()"/>
+        <xsl:param name="all.measures" required="yes" as="node()+"/>
+        <xsl:param name="clicked.svg.id" required="yes" as="xs:string"/>
+        
+        <xsl:variable name="stateDesc" select="''" as="xs:string"/>
+        <xsl:variable name="desc" as="xs:string">
+            <xsl:choose>
+                <xsl:when test="count($all.measures) = 1">
+                    <xsl:value-of select="local:getLocal('barline.atMeasure',$first.measure/@label)"/>
+                </xsl:when>
+                <xsl:when test="count($all.measures) = 2">
+                    <xsl:variable name="measures.sorted" select="($doc//mei:measure[@xml:id = $all.measures/@xml:id])" as="node()+"/>
+                    <xsl:value-of select="local:getLocal('barline.betweenMeasures',$measures.sorted[1]/@label,$measures.sorted[2]/@label)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="''"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="all.svgs" select="tokenize(replace($first.measure/@facs,'#',''),' ')[. != $doc//mei:zone/@xml:id]" as="xs:string+"/>        
+        <xsl:variable name="svgIDs" as="xs:string+">
+            <xsl:choose>
+                <xsl:when test="count($all.measures) = 1">
+                    <xsl:sequence select="$all.svgs"/>
+                </xsl:when>
+                <xsl:when test="count($all.measures) = 2">
+                    <xsl:sequence select="$all.svgs[. = tokenize(replace($all.measures[2]/@facs,'#',''),' ')]"/>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+        
+        <xsl:value-of select="concat('{&#34;type&#34;:&#34;barline&#34;,',
+            '&#34;id&#34;:&#34;',$first.measure/@xml:id,'&#34;,',
+            '&#34;svgIDs&#34;:[&#34;',string-join($svgIDs,'&#34;,&#34;'),'&#34;],',
+            '&#34;stateDesc&#34;:&#34;',$stateDesc,'&#34;,',
+            '&#34;bravura&#34;:&#34;&#34;,',
+            '&#34;measure&#34;:&#34;','&#34;,',
+            '&#34;position&#34;:&#34;','&#34;,',
+            '&#34;desc&#34;:&#34;',$desc,'&#34;}')"/>
     </xsl:function>
     
     <!-- @id of the element in question -->
@@ -888,6 +972,12 @@
                     </xsl:when>
                     <xsl:when test="local-name(.) = 'artic'">
                         <xsl:value-of select="local:processArtic(.)"/>
+                    </xsl:when>
+                    <xsl:when test="local-name(.) = 'cpMark'">
+                        <xsl:value-of select="local:processCpMark(.)"/>
+                    </xsl:when>
+                    <xsl:when test="local-name(.) = 'measure'">
+                        <xsl:value-of select="local:processBarline(.,$elems,$elem.id)"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:value-of select="''"/>

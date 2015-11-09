@@ -1,4 +1,4 @@
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:mei="http://www.music-encoding.org/ns/mei" xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" exclude-result-prefixes="xs xd math mei" version="3.0">
+<xsl:stylesheet xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:mei="http://www.music-encoding.org/ns/mei" xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl" exclude-result-prefixes="xs xd math mei" version="3.0">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>
@@ -24,6 +24,8 @@
     <!-- todo: if I knew this, I'd be happy… -->
     <xsl:param name="textOnly"/>
     
+    <xsl:variable name="rawDoc" select="/" as="node()"/>
+    
     <!-- get the <mei:state> element, as well as all preceding and following states 
         (this depends on the assumption that only chronologically ordered states are considered) -->
     <xsl:variable name="state" select="id($state.id)" as="node()"/>
@@ -35,8 +37,10 @@
     
     <!-- get the xml:id of the first measure of this state -->
     <xsl:variable name="firstMeasureID" as="xs:string">
-        <xsl:variable name="affected.measure.ids" select="//mei:genDesc/tokenize(replace(@plist,'#',''),' ')" as="xs:string*"/>
+        <!--<xsl:variable name="affected.measure.ids" select="//mei:genDesc/tokenize(replace(@plist,'#',''),' ')" as="xs:string*"/>
         <xsl:variable name="affected.measures" select="(//mei:measure[@xml:id = $affected.measure.ids])" as="node()*"/>
+        <xsl:sequence select="$affected.measures[1]/@xml:id"/>-->
+        <xsl:variable name="affected.measures" select="($rawDoc//mei:measure[ancestor::mei:section/@xml:id = $rawDoc//mei:genDesc/tokenize(replace(@plist,'#',''),' ')])" as="node()*"/>
         <xsl:sequence select="$affected.measures[1]/@xml:id"/>
     </xsl:variable>
     
@@ -56,6 +60,36 @@
         <!-- finally, controlEvents (like slurs) are attached with
             @startid and @endid (as opposed to @tstamp and @tstamp2 -->
         <xsl:apply-templates select="$added.tstamps" mode="bind.controlEvents"/>
+    </xsl:template>
+    
+    <!-- if a scoreDef is given for the textual scar, use that -->
+    <xsl:template match="mei:score/mei:scoreDef" mode="first.pass">
+        <xsl:choose>
+            <xsl:when test="$rawDoc//mei:section[@type = 'textualScar']/mei:*[1][local-name() = 'supplied' and ./mei:scoreDef]">
+                <xsl:apply-templates select="($rawDoc//mei:section[@type = 'textualScar']/mei:supplied/mei:scoreDef)[1]" mode="swapScoreDef"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="mei:scoreDef" mode="first.pass">
+        <xsl:choose>
+            <xsl:when test="parent::mei:supplied[position() = 1 and ./parent::mei:section[@type = 'textualScar']]"/>
+            <xsl:otherwise>
+                <xsl:next-match/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="mei:staffDef" mode="swapScoreDef">
+        <xsl:copy>
+            <xsl:if test="not(@lines)">
+                <xsl:attribute name="lines" select="'5'"/>
+            </xsl:if>
+            <xsl:apply-templates select="node() | @*" mode="#current"/>
+        </xsl:copy>
     </xsl:template>
     
     <!-- decide how to deal with modifications to the source in order to re-establish the sought state -->
@@ -163,8 +197,8 @@
     <!-- select only those measures affected by the "Störstelle" -->
     <xsl:template match="mei:measure" mode="first.pass">
         <xsl:choose>
-            <!-- if the measure is referenced as affected by a "Störstelle", keep it -->
-            <xsl:when test="@xml:id = //mei:genDesc/tokenize(replace(@plist,'#',''),' ')">
+            <!-- when a section is provided that encapsulates the whole textual scar, and this measure is contained in that section -->
+            <xsl:when test="some $section.id in ancestor::mei:section/@xml:id satisfies $section.id = //mei:genDesc/tokenize(replace(@plist,'#',''),' ')">
                 <xsl:next-match/>
             </xsl:when>
             <!-- if measure isn't mentioned, don't keep -->
@@ -172,10 +206,10 @@
         </xsl:choose>
     </xsl:template>
     
-    <!-- this template inserts a (provided) clef that's missing because of the selection of measures -->
+    <!--<!-\- this template inserts a (provided) clef that's missing because of the selection of measures -\->
     <xsl:template match="mei:layer" mode="first.pass">
         <xsl:choose>
-            <!-- this addition should only happen in the first measure shown -->
+            <!-\- this addition should only happen in the first measure shown -\->
             <xsl:when test="not(ancestor::mei:measure/@xml:id = $firstMeasureID)">
                 <xsl:next-match/>
             </xsl:when>
@@ -187,11 +221,11 @@
                 <xsl:copy>
                     <xsl:apply-templates select="@*" mode="#current"/>
                     <xsl:choose>
-                        <!-- when there is an earlier clef element, copy it here -->
+                        <!-\- when there is an earlier clef element, copy it here -\->
                         <xsl:when test="exists($clefChange) and local-name($clefChange) = 'clef'">
                             <xsl:copy-of select="$clefChange"/>
                         </xsl:when>
-                        <!-- when there is a clef changed by using a staffDef, add a clef element here -->
+                        <!-\- when there is a clef changed by using a staffDef, add a clef element here -\->
                         <xsl:when test="exists($clefChange) and local-name($clefChange) = 'staffDef'">
                             <clef xmlns="http://www.music-encoding.org/ns/mei" line="{$clefChange/@clef.line}" shape="{$clefChange/@clef.shape}"/>
                         </xsl:when>
@@ -201,7 +235,7 @@
                 </xsl:copy>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
+    </xsl:template>-->
     
 <!-- mode add.tstamps -->
     
@@ -349,15 +383,8 @@
                     <xsl:attribute name="beam" select="'t'"/>
                     <xsl:attribute name="beamSpan.id" select="$matching.beamSpan/@xml:id"/>
                 </xsl:when>
-                <xsl:when test="some $beamSpan in $beamSpans satisfies 
-                    ($tstamp gt $beamSpan/number(@tstamp) and 
-                        (if(contains($beamSpan/@tstamp2,'m+')) 
-                        then($tstamp lt number($beamSpan/substring-after(@tstamp2,'m+')))  
-                        else($tstamp lt number($beamSpan/@tstamp2))) 
-                    )">
-                    
-                    <xsl:variable name="relevant.beamSpan" select="$beamSpans[$tstamp gt number(@tstamp) and 
-                        (if(contains(@tstamp2,'m+')) then($tstamp lt number(substring-after(@tstamp2,'m+'))) else($tstamp lt number(@tstamp2)))][1]" as="node()"/>
+                <xsl:when test="some $beamSpan in $beamSpans satisfies                      ($tstamp gt $beamSpan/number(@tstamp) and                          (if(contains($beamSpan/@tstamp2,'m+'))                          then($tstamp lt number($beamSpan/substring-after(@tstamp2,'m+')))                           else($tstamp lt number($beamSpan/@tstamp2)))                      )">
+                    <xsl:variable name="relevant.beamSpan" select="$beamSpans[$tstamp gt number(@tstamp) and                          (if(contains(@tstamp2,'m+')) then($tstamp lt number(substring-after(@tstamp2,'m+'))) else($tstamp lt number(@tstamp2)))][1]" as="node()"/>
                     <xsl:attribute name="beam" select="'m'"/>
                     <xsl:attribute name="beamSpan.id" select="$relevant.beamSpan/@xml:id"/>
                 </xsl:when>

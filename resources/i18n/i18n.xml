@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <collection>
     <key xml:id="tooltipFullscreen">
         <value xml:lang="de">Vollbildansicht umschalten</value>
@@ -49,8 +48,8 @@
         <value xml:lang="en">Sequence of Variants</value>
     </key>
     <key xml:id="tabLayersPerspective">
-        <value xml:lang="de">Textschichten</value>
-        <value xml:lang="en">Textual Layers</value>
+        <value xml:lang="de">Schreibprozess</value>
+        <value xml:lang="en">Writing process</value>
     </key>
     <key xml:id="tabInvariancePerspective">
         <value xml:lang="de">Invarianz</value>
@@ -65,7 +64,7 @@
         <value xml:lang="en">highlight in facsimile</value>
     </key>
     <key xml:id="perspectiveSwitch">
-        <value xml:lang="de">Einfärbungsmodus</value>
+        <value xml:lang="de">Darstellungsmodus</value>
         <value xml:lang="en">Coloring Mode</value>
     </key>
     <key xml:id="aboutText">
@@ -73,8 +72,12 @@
         <value xml:lang="en">This demo was developed by the Beethovens Werkstatt team. It is build on encodings of Beethoven's manuscripts with MEI, combined with Scalable Vector Graphics (SVG) and the high-resolution digitizations of the Beethoven-Haus in Bonn, Germany. Musical texts are rendered with Verovio, which natively supports MEI. This prototype is just a proof of concept and may not be misunderstood as a final product – neither with regard to the concepts and methods nor from a technical perspective. </value>
     </key>
     <key xml:id="versionString">
-        <value xml:lang="de">Version 0.5.3 (2015-07-03) | © 2015 Beethovens Werkstatt</value>
-        <value xml:lang="en">Version 0.5.3 (2015-07-03) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="de">Version 0.5.8 (2015-09-25) | © 2015 Beethovens Werkstatt</value>
+        <value xml:lang="en">Version 0.5.8 (2015-09-25) | © 2015 Beethovens Werkstatt</value>
+    </key>
+    <key xml:id="selectIntro">
+        <value xml:lang="de">Bitte wählen Sie die anzuzeigende Probe-Edition aus.</value>
+        <value xml:lang="en">Please select the demo edition to load.</value>
     </key>
     <key xml:id="loadingStartup">
         <value xml:lang="de">Anwendung wird geladen</value>
@@ -244,6 +247,10 @@
         <value xml:lang="de"> einer Streichung</value>
         <value xml:lang="en"> of a deletion</value>
     </key>
+    <key xml:id="confirmation.restore">
+        <value xml:lang="de"> einer Wiederherstellung</value>
+        <value xml:lang="en"> of a restored text</value>
+    </key>
     <key xml:id="clarification">
         <value xml:lang="de">Verdeutlichung: @@1%%</value>
         <value xml:lang="en">Clarification: @@1%%</value>
@@ -257,12 +264,12 @@
         <value xml:lang="en">Articulation: Staccato-Dot</value>
     </key>
     <key xml:id="precedes.störstelle">
-        <value xml:lang="de">vor der Störstelle</value>
-        <value xml:lang="en">precedes section under consideration</value>
+        <value xml:lang="de">vor der Textnarbe</value>
+        <value xml:lang="en">precedes textual scar</value>
     </key>
     <key xml:id="follows.störstelle">
-        <value xml:lang="de">nach der Störstelle</value>
-        <value xml:lang="en">follows on section under consideration</value>
+        <value xml:lang="de">nach der Textnarbe</value>
+        <value xml:lang="en">follows textual scar</value>
     </key>
     <key xml:id="measure">
         <value xml:lang="de">Takt @@1%%</value>
@@ -275,6 +282,26 @@
     <key xml:id="deletion.text">
         <value xml:lang="de">Kanzellierung: @@1%%</value>
         <value xml:lang="en">Cancellation: @@1%%</value>
+    </key>
+    <key xml:id="cpMark">
+        <value xml:lang="de">Kurzschreibweise</value>
+        <value xml:lang="en">Abbreviation</value>
+    </key>
+    <key xml:id="cpMark.collaParte">
+        <value xml:lang="de">colla parte mit @@1%%, @@2%% @@3%% @@4%%</value>
+        <value xml:lang="en">colla parte with @@1%%, @@2%% @@3%% @@4%%</value>
+    </key>
+    <key xml:id="in8va">
+        <value xml:lang="de">(oktaviert)</value>
+        <value xml:lang="en">(in octave)</value>
+    </key>
+    <key xml:id="barline.atMeasure">
+        <value xml:lang="de">Taktstrich zu Takt @@1%%</value>
+        <value xml:lang="en">barline at measure @@1%%</value>
+    </key>
+    <key xml:id="barline.betweenMeasures">
+        <value xml:lang="de">Taktstrich zwischen Takt @@1%% und @@2%%</value>
+        <value xml:lang="en">barline between measures @@1%% and @@2%%</value>
     </key>
     <!--
     

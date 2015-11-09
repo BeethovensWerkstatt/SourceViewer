@@ -1,6 +1,6 @@
 /*
  * SourceViewer app for eXist database
- * v.0.5.3
+ * v.0.5.6
  *  
  * License: AGPL v3 
  */
@@ -45,7 +45,7 @@ var colors = ['#859900','#d33682','#2aa198','#cb4b16','#268bd2','#6c71c4','#dc32
 var paperColor = '#f8f4dc';
 var suppliedColor = '#999999';
 //var highlightColor = '#beddff';
-var highlightColor = '#c64863';
+var highlightColor = '#980eb6';
 
 //duration in ms for displaying overlays
 var ms = 8000;
@@ -119,9 +119,9 @@ function loadMEI() {
  * - suppliedIDs //array of IDs of supplied events
  * - suppliedAccids //array of IDs of supplied accidentals
  */ 
-function getFeatures() {
+function getFeatures(sourceID) {
     
-    new jQuery.getJSON('resources/xql/getFeatures.xql', function(data) {
+    new jQuery.getJSON('resources/xql/getFeatures.xql', {sourceID: sourceID}, function(data) {
     	    
     	    //puts the returning JSON both into local var file and global meiFile
     	    var file = meiFile = data || "";
@@ -170,7 +170,7 @@ function getFeatures() {
     	    showPage(file.pages[0].id);
     	    
     	    //if only one page available, remove page overview
-    	    if(file.pages.length = 1) {
+    	    if(file.pages.length === 1) {
     	        $('#pagePreview h1').click();
     	        $('#pagePreview').hide();
     	    }
@@ -214,8 +214,17 @@ function getFeatures() {
                 var layersTarget = 'verovioLayers_' + state.id;
                 $('#stateContainer_' + state.id + ' .perspectiveBox.layers').append('<div class="verovioBox" id="' + layersTarget + '"></div>');
                 //add state description
-                var layersDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + state.stateDesc + '</div></div>';
+                var layersDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + /*state.stateDesc + */'</div></div>';
                 $('#stateContainer_' + state.id + ' .perspectiveBox.layers').append(layersDesc);
+                
+                new jQuery.ajax('resources/xql/getDescription.xql',{
+                    method: 'get',
+                    data: {sourceID: meiFile.id, stateID: state.id, desc: 'layers'},
+                    success: function(result) {
+                    
+                        $('#stateContainer_' + state.id + ' .perspectiveBox.layers .content').append($.parseHTML(result));
+                    }
+                });
                 
                 //set up invariance view
                 var invarianceBox = '<div class="perspectiveBox invariance" style="display: none;"></div>';
@@ -223,8 +232,16 @@ function getFeatures() {
                 var invarianceTarget = 'verovioInvariance_' + state.id;
                 $('#stateContainer_' + state.id + ' .perspectiveBox.invariance').append('<div class="verovioBox" id="' + invarianceTarget + '"></div>');
                 //add state description
-                var invarianceDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + state.invariantDesc + '</div></div>';
+                var invarianceDesc = '<div class="descBox"><h2><i class="descToggle fa fa-caret-down fa-fw"></i> <span data-i18n-text="stateDescHeading">' + langFile.stateDescHeading + '</span></h2><div class="content">' + /*state.invariantDesc + */'</div></div>';
                 $('#stateContainer_' + state.id + ' .perspectiveBox.invariance').append(invarianceDesc);
+                
+                new jQuery.ajax('resources/xql/getDescription.xql',{
+                    method: 'get',
+                    data: {sourceID: meiFile.id, stateID: state.id, desc: 'invariance'},
+                    success: function(result) {
+                        $('#stateContainer_' + state.id + ' .perspectiveBox.invariance .content').append($.parseHTML(result));
+                    }
+                });
                 
                 //add listener to show / hide comments (works across layers and invariance view)
                 $('#stateContainer_' + state.id + ' .descBox > h2').on('click',function() {
@@ -436,10 +453,14 @@ function getOverlayInfo(sourceID) {
     	    $.each(layerIDs, function(index,id) {
         	    try {
         	       $('.perspectiveBox.layers svg *[id = ' + id + ']').attr('stroke',colors[j]).attr('fill',colors[j]);
+        	       
         	    } catch (e){
         	        
         	    }
-        	});    
+        	});  
+        	
+        	//todo: fake to improve on the first note of state4 of op.59.3
+            $('.perspectiveBox.layers #new343d1422-d1c1-4ebe-850b-dac493cf7677').attr('fill',colors[0]).attr('stroke',colors[0]);   
     	}
     	
     	for(var j = 0; j< result.invariance.length;j++) {
@@ -647,7 +668,54 @@ function queryElement(id) {
         $('#showCode').attr('onclick','showCode("' + data.id + '");');
         
         //add link to facsimile, triggers getEventSVG
-        $('#showFacsimile').attr('onclick','getEventSVG("' + data.id + '");');
+        if(data.type !== 'barline') {
+            $('#showFacsimile').off();
+            $('#showFacsimile').attr('onclick','getEventSVG("' + data.id + '");');
+        } else {
+        
+            $('#showFacsimile').removeAttr('onclick');
+            $('#showFacsimile').on('click',function(e) {
+                var svg = $('#' + data.svgIDs[0]).parent();
+                var width = parseFloat(svg.attr('width'));
+                var height = parseFloat(svg.attr('height'));
+                
+                //set maximum values as starting point
+                var ulx = width;
+                var uly = height;
+                var lrx = 0;
+                var lry = 0;
+                
+                //iterate over all svg shapes
+                $.each(data.svgIDs, function(index, id) {
+                
+                    //get bounding box of current shape
+                    var bbox = svg.children('#' + id)[0].getBBox();
+                    
+                    //modify values according to bounding boxes
+                    ulx = Math.min(ulx,bbox.x);
+                    uly = Math.min(uly,bbox.y);
+                    lrx = Math.max(lrx,bbox.x + bbox.width);
+                    lry = Math.max(lry,bbox.y + bbox.height);
+                    
+                    //make shape in background-svg visible
+                    $('#' + id).attr('opacity','0.6');
+                    //turn off after globally defined milliseconds again. 
+                    setTimeout(function(){
+                       $('#' + id).attr('opacity','0');
+                    }, ms);
+                });
+                
+                //Beethoven-specific: used for considering smaller-scale images  
+                var ratio = activePage.width / width;
+                ulx = ulx * ratio
+                uly = uly * ratio;
+                lrx = lrx * ratio;
+                lry = lry * ratio;
+                
+                //let facsViewer focus on the bounding box of all svg shapes of the MEI event
+                facs.showRect(ulx,uly,lrx,lry);        
+            });
+        }
         
         //fades in info dialog, and automatically fades it out after given ms (globally specified)
         if($('#clickedItemDialog:hidden')) {
@@ -818,7 +886,7 @@ function getEventSVG(eventID) {
 /*
  * is this function needed? 
  */
-/*function showRect(pageID,ulx,uly,lrx,lry) {
+function showRect(pageID,ulx,uly,lrx,lry) {
          
     if(pageID === activePage.id) {
         var scaleFactor = (activePage.containsMusic) ? 1 : 2000 / activePage.width;
@@ -843,7 +911,7 @@ function getEventSVG(eventID) {
         showPage(pageID,func);
     }
         
-};*/
+};
 
 /*
  * function renderMEI(mei, target)
@@ -887,13 +955,24 @@ function renderMEI(mei, targets) {
             $('*[id=' +suppliedAccid+'] .accid').css('fill',suppliedColor).css('stroke',suppliedColor);
         });
         
+        $(target + ' .clef').css('fill',suppliedColor).css('stroke',suppliedColor);
+        $(target + ' .meterSig').css('fill',suppliedColor).css('stroke',suppliedColor);
+        
+        $(target + ' .system > text').css('fill',suppliedColor);
+        
         //attach onclick listener to notes and rests to trigger getEventSVG
         //todo: should we add clefs and other elements? attention: clefs may be supplied, so no ID in the svg available. Would it break nicely?
-        $(target + ' svg g.note, ' + target + ' svg g.rest, ' + target + ' svg g.slur, ' + target + ' svg g.tie, ' + target + ' svg g.beam').on('click', function(e) {
+        $(target + ' svg g.note, ' + target + ' svg g.rest, ' + target + ' svg g.slur, ' + target + ' svg g.tie, ' + target + ' svg g.beam polygon').on('click', function(e) {
             var elem = e.currentTarget;
             //$('#status').html(elem.id);
             //getEventSVG(elem.id);
-            queryElement(elem.id);
+            
+            if($(elem).prop('tagName').toLowerCase() === 'polygon') {
+                queryElement($(elem).parent('g.beam').attr('id'));
+            } else {
+                queryElement(elem.id);
+            }
+            
         });
     });
     
@@ -924,13 +1003,24 @@ function adjustOverlay() {
                 if(index <= position) {
                     $.each(object.svgIDs, function(i,id) {
                     
-                        if(id === 'shape_922446ed-60c1-40a7-9cea-35e1b1dbf366')
-                            console.log('spotted');
+                        /*if(id === 'shape_922446ed-60c1-40a7-9cea-35e1b1dbf366')
+                            console.log('spotted');*/
                     
                         $('.leaflet-overlay-pane svg.overlay path#' + currentState + '_' + id).attr('fill',colors[index]);
                     });
                 }
             });
+            
+            
+            //todo: this is a hack to fix incorrect coloring of the first note in state 4 in layers mode. 
+            //as a clean solution would require a complete redesign of the color processing, and this coloring mode
+            //is scheduled to be replaced by a different solution, a clean solution won't be implemented. [2015-08-12, JK]
+            if(currentPerspective === 'layers' && currentState === 'dfhsu_3') {
+                $('#dfhsu_3_shape_459abe38-0d35-4741-adad-1c12c96d3811').attr('fill',colors[0]);             
+                
+                //console.log('faked coloring of first note in measure 34a/D');
+            }
+            
             
         } else if(currentPerspective === 'invariance') {
             $.each(overlayInfo.invariance, function(index,object) {
@@ -943,6 +1033,7 @@ function adjustOverlay() {
         }    
     } catch(e) {
         console.log('adjustOverlay failed');
+        console.log(e);
     }
     
 };
@@ -1403,12 +1494,12 @@ function getLangFile(targetLang) {
     
     new jQuery.getJSON('resources/xql/getLangFile.xql',{prefLang: targetLang},function(data) {
         
-        console.log('lang (wanted): ' + targetLang);
+        //console.log('lang (wanted): ' + targetLang);
         
         lang = data.lang;
         
-        console.log('data.lang: ' + data.lang);
-        console.log('lang (new): ' + lang);
+        //console.log('data.lang: ' + data.lang);
+        //console.log('lang (new): ' + lang);
         
         langFile = data.localization;
         
@@ -1453,7 +1544,23 @@ $('#langSelectDE').on('click', function() {
 
 
 /*
+ * register listeners on select box of works
+ */
+$('#selectorBox li.edition').on('click',function() {
+    var sourceID = $(this).attr('data-sourceID');
+    
+    //the following line starts the application!
+    getFeatures(sourceID);
+    $('#loading').fadeIn();
+    $('#selectorBox').fadeOut();
+});
+ 
+if( $('#selectorBox li.edition').length === 1) {
+    $('#selectorBox li.edition').click();
+}
+
+/*
  * start of application
  */
-getFeatures();
+
 getBaseLanguage();
